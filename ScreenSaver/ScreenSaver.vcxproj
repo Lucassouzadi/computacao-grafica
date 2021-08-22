@@ -19,9 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{34A21A6D-3350-4139-A10C-3EEDFF5F534F}</ProjectGuid>
-    <RootNamespace>Sabertooth</RootNamespace>
+    <ProjectGuid>{EF584987-9C37-48F1-91F9-B4DB96AB1EBF}</ProjectGuid>
+    <RootNamespace>ScreenSaver</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ScreenSaver</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
