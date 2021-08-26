@@ -1,6 +1,16 @@
 #include "System.h"
 constexpr auto PI = 3.14159265;
 
+float dot(glm::vec2 v1, glm::vec2 v2) {
+	return v1.x * v2.x + v1.y * v2.y;
+}
+
+glm::vec2 reflexao(glm::vec2 direcao, glm::vec2 normal) {
+	glm::vec2 direcaoContraria = -direcao;
+	float a = dot(normal, direcaoContraria);
+	glm::vec2 novaDirecao = glm::vec2(2 * normal.x * a - direcaoContraria.x, 2 * normal.y * a - direcaoContraria.y);
+	return novaDirecao;
+}
 
 System::System()
 {
@@ -22,7 +32,7 @@ int System::GLFWInit()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	window = glfwCreateWindow(WIDTH, HEIGHT, "Sabertooth", nullptr, nullptr);
+	window = glfwCreateWindow(WIDTH, HEIGHT, "ScreenSaver", nullptr, nullptr);
 
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 
@@ -77,12 +87,12 @@ void System::Run()
 
 	coreShader.Use();
 	coreShader.LoadTexture("images/woodTexture.jpg", "texture1", "woodTexture");
-	
-	GLfloat translate[] = { 
-		1.0f, 0.0f, 0.0f, 0.0f,  // 1ª coluna 
-		0.0f, 1.0f, 0.0f, 0.0f,  // 2ª coluna 
-		0.0f, 0.0f, 1.0f, 0.0f,  // 3ª coluna 
-		0.0f, 0.0f, 0.0f, 1.0f // 4ª coluna
+
+	GLfloat translate[] = {
+		1.0f, 0.0f, 0.0f, 0.0f,  // 1ï¿½ coluna 
+		0.0f, 1.0f, 0.0f, 0.0f,  // 2ï¿½ coluna 
+		0.0f, 0.0f, 1.0f, 0.0f,  // 3ï¿½ coluna 
+		0.0f, 0.0f, 0.0f, 1.0f // 4ï¿½ coluna
 	};
 	GLfloat vertices[] =
 	{
@@ -122,17 +132,16 @@ void System::Run()
 	int translateLocation = glGetUniformLocation(coreShader.program, "translate");
 
 	float speed = 1.0f;
-	float directionX = 1.0f;
-	float directionY = 1.0f;
-	float lastPositionX = 0.0f;
-	float lastPositionY = 0.0f;
-	float angle = 40.0f; // Angle in degrees
+	float startingAngle = 40.0f; // Angle in degrees
+	float rads = startingAngle * PI / 180; // Angle in radians
 
-	double seno = sin(angle * PI / 180);
-	double cosseno = cos(angle * PI / 180);
+	glm::vec2 startingPosition = glm::vec2(0.0f, 0.0f);
+	glm::vec2 direction = glm::vec2(cos(rads), sin(rads));
 
-	printf("seno %f\n", seno);
-	printf("cosseno %f\n", cosseno);
+	glm::vec2 NR = glm::vec2(-1.0f, 0.0f);
+	glm::vec2 NT = glm::vec2(0.0f, -1.0f);
+	glm::vec2 NL = glm::vec2(1.0f, 0.0f);
+	glm::vec2 NB = glm::vec2(0.0f, 1.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -146,33 +155,65 @@ void System::Run()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+		static glm::vec2 currentPosition = startingPosition;
+
 		static double previousSeconds = glfwGetTime();
 		double currentSeconds = glfwGetTime();
 		double elapsedSeconds = currentSeconds - previousSeconds;
 		previousSeconds = currentSeconds;
 
-		for (int vert = 0; vert < 3; vert++) {
-			float vertX = lastPositionX+vertices[vert * 3];
-			float vertY = lastPositionY+vertices[vert * 3 + 1];
+		glm::vec2 delta = glm::vec2(elapsedSeconds * speed) * direction;
 
-			if (vertX > 1.0f) {			// Right border colision
-				directionX = -1.0f; 
+		for (int vert = 0; vert < 3; vert++) {
+			glm::vec2 vertPos = glm::vec2(currentPosition.x + vertices[vert * 3], currentPosition.y + vertices[vert * 3 + 1]);
+			glm::vec2 vertFuturePos = vertPos + delta;
+
+			bool collided = false;
+			glm::vec2 distanceUntillCollidedBorder;
+			glm::vec2 collisionNormal;
+			if (collided = vertFuturePos.x > 1.0f) {		// Right border colision
+				float tan = direction.y / direction.x;
+				float xUntilRightBorder = 1.0f - vertPos.x;
+				float yUntilRightBorder = tan * xUntilRightBorder;
+				distanceUntillCollidedBorder = glm::vec2(xUntilRightBorder, yUntilRightBorder);
+				collisionNormal = NR;
 			}
-			else if (vertX < -1.0f) {	// Left border colision
-				directionX = 1.0f;
+			else if (collided = vertFuturePos.x < -1.0f) {	// Left border colision
+				float tan = direction.y / direction.x;
+				float xUntilLeftBorder = -1.0f - vertPos.x;
+				float yUntilLeftBorder = tan * xUntilLeftBorder;
+				distanceUntillCollidedBorder = glm::vec2(xUntilLeftBorder, yUntilLeftBorder);
+				collisionNormal = NL;
 			}
-			if (vertY > 1.0f) {			// Top border colision
-				directionY = -1.0f;
+			else if (collided = vertFuturePos.y > 1.0f) {	// Top border colision
+				float tan = direction.x / direction.y;
+				float yUntilTopBorder = 1.0f - vertPos.y;
+				float xUntilTopBorder = tan * yUntilTopBorder;
+				distanceUntillCollidedBorder = glm::vec2(xUntilTopBorder, yUntilTopBorder);
+				collisionNormal = NT;
 			}
-			else if (vertY < -1.0f) {	// Bottom border colision
-				directionY = 1.0f;
+			else if (collided = vertFuturePos.y < -1.0f) {	// Bottom border colision
+				float tan = direction.x / direction.y;
+				float yUntilBottomBorder = -1.0f - vertPos.y;
+				float xUntilBottomBorder = tan * yUntilBottomBorder;
+				distanceUntillCollidedBorder = glm::vec2(xUntilBottomBorder, yUntilBottomBorder);
+				collisionNormal = NB;
+			}
+
+			if (collided) {
+				currentPosition += distanceUntillCollidedBorder;
+				delta -= distanceUntillCollidedBorder;
+				delta = reflexao(delta, collisionNormal);
+				direction = reflexao(direction, collisionNormal);
+				vert = 0;
 			}
 		}
 
-		lastPositionX += elapsedSeconds * speed * cosseno * directionX;
-		translate[12] = lastPositionX;
-		lastPositionY += elapsedSeconds * speed * seno * directionY;
-		translate[13] = lastPositionY;
+		currentPosition += delta;
+		translate[12] = currentPosition.x;
+		translate[13] = currentPosition.y;
+
+
 
 		coreShader.Use();
 		glUniformMatrix4fv(translateLocation, 1, GL_FALSE, translate);
@@ -184,7 +225,6 @@ void System::Run()
 
 		glfwSwapBuffers(window);
 	}
-
 
 }
 
