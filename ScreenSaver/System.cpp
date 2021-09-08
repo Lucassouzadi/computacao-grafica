@@ -86,7 +86,9 @@ void System::Run()
 {
 
 	coreShader.Use();
-	coreShader.LoadTexture("images/woodTexture.jpg", "texture1", "woodTexture");
+
+	glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+	glUniformMatrix4fv(glGetUniformLocation(coreShader.program, "projection"), 1, GL_FALSE, &projection[0][0]);
 
 	GLfloat translate[] = {
 		1.0f, 0.0f, 0.0f, 0.0f,  // 1� coluna 
@@ -94,12 +96,14 @@ void System::Run()
 		0.0f, 0.0f, 1.0f, 0.0f,  // 3� coluna 
 		0.0f, 0.0f, 0.0f, 1.0f // 4� coluna
 	};
+
 	GLfloat vertices[] =
 	{
 		0.0f, 0.3f, 0.0f,	// Top
 		0.3f,  -0.3f, 0.0f,	// Bottom Right
 		-0.3f, -0.3f, 0.0f	// Bottom Left
 	};
+
 	GLfloat colors[] =
 	{
 		1.0f, 0.0f, 0.0f, // Top
@@ -131,17 +135,7 @@ void System::Run()
 
 	int translateLocation = glGetUniformLocation(coreShader.program, "translate");
 
-	float speed = 1.0f;
-	float startingAngle = 40.0f; // Angle in degrees
-	float rads = startingAngle * PI / 180; // Angle in radians
-
 	glm::vec2 startingPosition = glm::vec2(0.0f, 0.0f);
-	glm::vec2 direction = glm::vec2(cos(rads), sin(rads));
-
-	glm::vec2 NR = glm::vec2(-1.0f, 0.0f);
-	glm::vec2 NT = glm::vec2(0.0f, -1.0f);
-	glm::vec2 NL = glm::vec2(1.0f, 0.0f);
-	glm::vec2 NB = glm::vec2(0.0f, 1.0f);
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -162,60 +156,36 @@ void System::Run()
 		double elapsedSeconds = currentSeconds - previousSeconds;
 		previousSeconds = currentSeconds;
 
-		glm::vec2 delta = glm::vec2(elapsedSeconds * speed) * direction;
+		glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 
-		for (int vert = 0; vert < 3; vert++) {
-			glm::vec2 vertPos = glm::vec2(currentPosition.x + vertices[vert * 3], currentPosition.y + vertices[vert * 3 + 1]);
-			glm::vec2 vertFuturePos = vertPos + delta;
+		glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
 
-			bool collided = false;
-			glm::vec2 distanceUntillCollidedBorder;
-			glm::vec2 collisionNormal;
-			if (collided = vertFuturePos.x > 1.0f) {		// Right border colision
-				float tan = direction.y / direction.x;
-				float xUntilRightBorder = 1.0f - vertPos.x;
-				float yUntilRightBorder = tan * xUntilRightBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilRightBorder, yUntilRightBorder);
-				collisionNormal = NR;
-			}
-			else if (collided = vertFuturePos.x < -1.0f) {	// Left border colision
-				float tan = direction.y / direction.x;
-				float xUntilLeftBorder = -1.0f - vertPos.x;
-				float yUntilLeftBorder = tan * xUntilLeftBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilLeftBorder, yUntilLeftBorder);
-				collisionNormal = NL;
-			}
-			else if (collided = vertFuturePos.y > 1.0f) {	// Top border colision
-				float tan = direction.x / direction.y;
-				float yUntilTopBorder = 1.0f - vertPos.y;
-				float xUntilTopBorder = tan * yUntilTopBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilTopBorder, yUntilTopBorder);
-				collisionNormal = NT;
-			}
-			else if (collided = vertFuturePos.y < -1.0f) {	// Bottom border colision
-				float tan = direction.x / direction.y;
-				float yUntilBottomBorder = -1.0f - vertPos.y;
-				float xUntilBottomBorder = tan * yUntilBottomBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilBottomBorder, yUntilBottomBorder);
-				collisionNormal = NB;
-			}
+		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
 
-			if (collided) {
-				currentPosition += distanceUntillCollidedBorder;
-				delta -= distanceUntillCollidedBorder;
-				delta = reflexao(delta, collisionNormal);
-				direction = reflexao(direction, collisionNormal);
-				vert = 0;
-			}
-		}
+		glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
-		currentPosition += delta;
+		glm::mat4 view;
+
+		view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+			glm::vec3(0.0f, 0.0f, 0.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f));
+
+		//view = glm::lookAt(eye, center, up);
+
+		/*const float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+
+		view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+
 		translate[12] = currentPosition.x;
-		translate[13] = currentPosition.y;
-
-
+		translate[13] = currentPosition.y;*/
 
 		coreShader.Use();
+
+		glUniformMatrix4fv(glGetUniformLocation(coreShader.program, "view"), 1, GL_FALSE, &view[0][0]);
 		glUniformMatrix4fv(translateLocation, 1, GL_FALSE, translate);
 
 		glBindVertexArray(triangleVAO);
