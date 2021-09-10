@@ -19,7 +19,7 @@ Mesh* ObjManager::readObj(string filename) {
 		if (lineType == "v") {
 			float x, y, z;
 			sline >> x >> y >> z;
-			mesh->addVertex(new glm::vec3(x * 0.1f, y * 0.1f, z * 0.1f));		// TODO: remover gambiarra pro objeto ficar pequeno
+			mesh->addVertex(new glm::vec3(x, y, z));
 		}
 		else if (lineType == "vn") {
 			float nx, ny, nz;
