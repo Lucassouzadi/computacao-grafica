@@ -1,28 +1,28 @@
 #include "System.h"
+#include "ObjManager.h"
 constexpr auto PI = 3.14159265;
 
-float dot(glm::vec2 v1, glm::vec2 v2) {
-	return v1.x * v2.x + v1.y * v2.y;
+using namespace std;
+
+float dot(glm::vec3 v1, glm::vec3 v2) {
+	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-glm::vec2 reflexao(glm::vec2 direcao, glm::vec2 normal) {
-	glm::vec2 direcaoContraria = -direcao;
+glm::vec2 reflexao(glm::vec3 direcao, glm::vec3 normal) {
+	glm::vec3 direcaoContraria = -direcao;
 	float a = dot(normal, direcaoContraria);
-	glm::vec2 novaDirecao = glm::vec2(2 * normal.x * a - direcaoContraria.x, 2 * normal.y * a - direcaoContraria.y);
+	glm::vec3 novaDirecao = glm::vec3(2 * normal.x * a - direcaoContraria.x, 2 * normal.y * a - direcaoContraria.y, 2 * normal.z * a - direcaoContraria.z);
 	return novaDirecao;
 }
 
-System::System()
-{
+System::System() {
 }
 
 
-System::~System()
-{
+System::~System() {
 }
 
-int System::GLFWInit()
-{
+int System::GLFWInit() {
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -37,7 +37,7 @@ int System::GLFWInit()
 	glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
 
 	if (window == nullptr) {
-		std::cout << "Failed to create GLFW Window" << std::endl;
+		cout << "Failed to create GLFW Window" << endl;
 		glfwTerminate();
 
 		return EXIT_FAILURE;
@@ -48,7 +48,7 @@ int System::GLFWInit()
 	glewExperimental = GL_TRUE;
 
 	if (glewInit() != GLEW_OK) {
-		std::cout << "Failed no init GLEW." << std::endl;
+		cout << "Failed no init GLEW." << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -85,49 +85,9 @@ int System::SystemSetup()
 void System::Run()
 {
 
-	coreShader.Use();
-	coreShader.LoadTexture("images/woodTexture.jpg", "texture1", "woodTexture");
-
-	GLfloat translate[] = {
-		1.0f, 0.0f, 0.0f, 0.0f,  // 1� coluna 
-		0.0f, 1.0f, 0.0f, 0.0f,  // 2� coluna 
-		0.0f, 0.0f, 1.0f, 0.0f,  // 3� coluna 
-		0.0f, 0.0f, 0.0f, 1.0f // 4� coluna
-	};
-	GLfloat vertices[] =
-	{
-		0.0f, 0.3f, 0.0f,	// Top
-		0.3f,  -0.3f, 0.0f,	// Bottom Right
-		-0.3f, -0.3f, 0.0f	// Bottom Left
-	};
-	GLfloat colors[] =
-	{
-		1.0f, 0.0f, 0.0f, // Top
-		0.0f, 1.0f, 0.0f, // Bottom Right
-		0.0f, 0.0f, 1.0f  // Bottom Left
-	};
-
-	GLuint positionVBO, colorVBO, triangleVAO;
-	glGenVertexArrays(1, &triangleVAO);
-	glGenBuffers(1, &positionVBO);
-	glGenBuffers(1, &colorVBO);
-
-	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-	glBindVertexArray(triangleVAO);
-
-	// Position attribute
-	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// Color attribute
-	glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-
-	glBindVertexArray(0); // Unbind VAO
+	ObjManager* objManager = new ObjManager();
+	Obj3D* obj = objManager->getHardcoded2DHouse();
+	objManager->objToVAO(obj);
 
 	int translateLocation = glGetUniformLocation(coreShader.program, "translate");
 
@@ -135,13 +95,12 @@ void System::Run()
 	float startingAngle = 32.0f; // Angle in degrees
 	float rads = startingAngle * PI / 180; // Angle in radians
 
-	glm::vec2 startingPosition = glm::vec2(0.0f, 0.0f);
-	glm::vec2 direction = glm::vec2(cos(rads), sin(rads));
 
-	glm::vec2 NR = glm::vec2(-1.0f, 0.0f);
-	glm::vec2 NT = glm::vec2(0.0f, -1.0f);
-	glm::vec2 NL = glm::vec2(1.0f, 0.0f);
-	glm::vec2 NB = glm::vec2(0.0f, 1.0f);
+	glm::vec3 NR = glm::vec3(-1.0f, 0.0f, 0.0f);
+	glm::vec3 NT = glm::vec3(0.0f, -1.0f, 0.0f);
+	glm::vec3 NL = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 NB = glm::vec3(0.0f, 1.0f, 0.0f);
+
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -155,85 +114,85 @@ void System::Run()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-		static glm::vec2 currentPosition = startingPosition;
+		static glm::vec3 direction = glm::vec3(cos(rads), sin(rads), 0.0f);
+		static glm::vec3 currentPosition = glm::vec3(0.0f);
 
 		static double previousSeconds = glfwGetTime();
 		double currentSeconds = glfwGetTime();
 		double elapsedSeconds = currentSeconds - previousSeconds;
 		previousSeconds = currentSeconds;
 
-		glm::vec2 delta = glm::vec2(elapsedSeconds * speed) * direction;
+		glm::vec3 delta = glm::vec3(elapsedSeconds * speed) * direction;
 
-		for (int vert = 0; vert < 3; vert++) {
-			glm::vec2 vertPos = glm::vec2(currentPosition.x + vertices[vert * 3], currentPosition.y + vertices[vert * 3 + 1]);
-			glm::vec2 vertFuturePos = vertPos + delta;
+		for (int vertIndex = 0; vertIndex < obj->getMesh()->getVertex().size(); vertIndex++) {
+			glm::vec3 vert = *(obj->getMesh()->getVertex()[vertIndex]);
+			glm::vec3 vertPos = currentPosition + vert;
+			glm::vec3 vertFuturePos = vertPos + delta;
 
 			bool collided = false;
-			glm::vec2 distanceUntillCollidedBorder;
-			glm::vec2 collisionNormal;
+			glm::vec3 distanceUntillCollidedBorder;
+			glm::vec3 collisionNormal;
 			if (collided = vertFuturePos.x > 1.0f) {		// Right border colision
-				printf("Collision with Right border");
+				printf("Collision with Right border\n");
 				float tan = direction.y / direction.x;
 				float xUntilRightBorder = 1.0f - vertPos.x;
 				float yUntilRightBorder = tan * xUntilRightBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilRightBorder, yUntilRightBorder);
+				distanceUntillCollidedBorder = glm::vec3(xUntilRightBorder, yUntilRightBorder, 0.0f);
 				collisionNormal = NR;
 			}
 			else if (collided = vertFuturePos.x < -1.0f) {	// Left border colision
-				printf("Collision with Left border");
+				printf("Collision with Left border\n");
 				float tan = direction.y / direction.x;
 				float xUntilLeftBorder = -1.0f - vertPos.x;
 				float yUntilLeftBorder = tan * xUntilLeftBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilLeftBorder, yUntilLeftBorder);
+				distanceUntillCollidedBorder = glm::vec3(xUntilLeftBorder, yUntilLeftBorder, 0.0f);
 				collisionNormal = NL;
 			}
 			else if (collided = vertFuturePos.y > 1.0f) {	// Top border colision
-				printf("Collision with Top border");
+				printf("Collision with Top border\n");
 				float tan = direction.x / direction.y;
 				float yUntilTopBorder = 1.0f - vertPos.y;
 				float xUntilTopBorder = tan * yUntilTopBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilTopBorder, yUntilTopBorder);
+				distanceUntillCollidedBorder = glm::vec3(xUntilTopBorder, yUntilTopBorder, 0.0f);
 				collisionNormal = NT;
 			}
 			else if (collided = vertFuturePos.y < -1.0f) {	// Bottom border colision
-				printf("Collision with Bottom border");
+				printf("Collision with Bottom border\n");
 				float tan = direction.x / direction.y;
 				float yUntilBottomBorder = -1.0f - vertPos.y;
 				float xUntilBottomBorder = tan * yUntilBottomBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilBottomBorder, yUntilBottomBorder);
+				distanceUntillCollidedBorder = glm::vec3(xUntilBottomBorder, yUntilBottomBorder, 0.0f);
 				collisionNormal = NB;
 			}
 
 			if (collided) {
 				currentPosition += distanceUntillCollidedBorder;
 				delta -= distanceUntillCollidedBorder;
-				delta = reflexao(delta, collisionNormal);
-				direction = reflexao(direction, collisionNormal);
-				vert = 0;
+				delta = glm::vec3(reflexao(delta, collisionNormal), 0.0f);
+				direction = glm::vec3(reflexao(direction, collisionNormal), 0.0f);
+				vertIndex = 0;
 			}
 		}
 
 		currentPosition += delta;
-		translate[12] = currentPosition.x;
-		translate[13] = currentPosition.y;
-
-
+		obj->setTranslate(glm::translate(glm::mat4(1.0f), glm::vec3(currentPosition)));
+		obj->setDirection(direction);
+		glUniformMatrix4fv(translateLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 
 		coreShader.Use();
-		glUniformMatrix4fv(translateLocation, 1, GL_FALSE, translate);
 
-		glBindVertexArray(triangleVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glBindVertexArray(0);
-
+		for (Group* group : obj->getMesh()->getGroups()) {
+			glBindVertexArray(group->getVAO());
+			glDrawArrays(GL_TRIANGLES, 0, group->getNumVertices());
+			glBindVertexArray(0);
+		}
 
 		glfwSwapBuffers(window);
 	}
 
 }
 
-void System::Finish()
-{
+void System::Finish() {
 	coreShader.Delete();
 
 	glfwTerminate();
