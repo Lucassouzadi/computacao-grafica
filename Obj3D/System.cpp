@@ -86,12 +86,17 @@ void System::Run()
 {
 
 	ObjManager* objManager = new ObjManager();
-	Obj3D* obj = objManager->getHardcoded2DHouse();
+
+	//Obj3D* obj = objManager->getHardcoded2DHouse();
+
+	Obj3D* obj = new Obj3D();
+	obj->setMesh(objManager->readObj("E:/git/computacao-grafica/Obj3D/mesa01.obj"));
+
 	objManager->objToVAO(obj);
 
 	int translateLocation = glGetUniformLocation(coreShader.program, "translate");
 
-	float speed = 1.0f;
+	float speed = 0.0f;
 	float startingAngle = 32.0f; // Angle in degrees
 	float rads = startingAngle * PI / 180; // Angle in radians
 
@@ -184,6 +189,7 @@ void System::Run()
 		for (Group* group : obj->getMesh()->getGroups()) {
 			glBindVertexArray(group->getVAO());
 			glDrawArrays(GL_TRIANGLES, 0, group->getNumVertices());
+			//glDrawArrays(GL_LINES, 0, group->getNumVertices());
 			glBindVertexArray(0);
 		}
 

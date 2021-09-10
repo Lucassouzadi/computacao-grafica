@@ -7,14 +7,12 @@ using namespace std;
 
 class Face {
 	private:
-		vector<int> verts, colors, norms, texts;
+		vector<int> verts, norms, texts;
 		unsigned int numVertices;
 	public:
-		// void addVertex(int vertPos, int vertText, int vertNorm);
-		void addVertex(int vertPos, int vertColor);
+		void addVertex(int vertPos, int vertText, int vertNorm);
 		unsigned int getNumOfVertices();
 		vector<int> getVerts();
-		vector<int> getColors();
 		vector<int> getNorms();
 		vector<int> getTexts();
 };

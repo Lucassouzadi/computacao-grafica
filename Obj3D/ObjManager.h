@@ -6,7 +6,7 @@
 
 class ObjManager {
 	public:
-		Obj3D* readObj(string fileName);
+		Mesh* readObj(string fileName);
 		Obj3D* getHardcoded2DHouse();
 		void objToVAO(Obj3D* obj3D);
 };
