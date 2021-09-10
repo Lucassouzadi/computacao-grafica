@@ -1,24 +1,103 @@
 ﻿#include "ObjManager.h"
 #include "System.h"
 
+Mesh* ObjManager::readObj(string filename) {
+	Mesh* mesh = new Mesh();
+	Group* group = new Group();
+	bool firstGroup = true;
+	ifstream arq(filename);
+	while (!arq.eof()) {
+		string line;
+		getline(arq, line);
+		stringstream sline;
+		sline << line;
+		string lineType;
+		sline >> lineType;
+		if (lineType.size() == 0 || lineType == "#") {
+			continue;
+		}
+		if (lineType == "v") {
+			float x, y, z;
+			sline >> x >> y >> z;
+			mesh->addVertex(new glm::vec3(x * 0.1f, y * 0.1f, z * 0.1f));		// TODO: remover gambiarra pro objeto ficar pequeno
+		}
+		else if (lineType == "vn") {
+			float nx, ny, nz;
+			sline >> nx >> ny >> nz;
+			mesh->addNormal(new glm::vec3(nx, ny, nz));
+		} 
+		else if (lineType == "vt") {
+			float tx, ty;
+			sline >> tx >> ty;
+			mesh->addTexture(new glm::vec2(tx, ty));
+		} 
+		else if(lineType == "f") {
+			Face* face = new Face();    
+			string token;
+			while (sline >> token) {
+				stringstream stoken;
+				stoken << token;
+				string aux;
+
+				int i = 0;
+				int v = 0;
+				int t = 0;
+				int n = 0;
+
+				while (getline(stoken, aux, '/')) {
+					int x = stoi(aux) - 1;
+					switch (i++) {
+						case 0: v = x; break;
+						case 1: t = x; break;
+						case 2: n = x; break;
+					}
+				}
+				face->addVertex(v, t, n);
+			}
+			group->addFace(face);
+		} 
+		else if (lineType == "g") {
+			string groupName;
+			sline >> groupName;
+			if (firstGroup) {
+				firstGroup = false;
+			} else {
+				mesh->addGroup(group);
+				group = new Group();
+			}   
+			group->setName(groupName);
+		}
+		else {   
+			cout << "tipo não reconhecido: "<< lineType << endl;
+		}
+	}
+	mesh->addGroup(group);
+	return mesh;
+}
 
 void ObjManager::objToVAO(Obj3D* obj) {
 	Mesh* mesh = obj->getMesh();
 	for (Group* group : mesh->getGroups()) {
-		vector < GLfloat > vPosition;
-		vector < GLfloat > vColor;
+		vector <GLfloat> vPosition, vTexture, vNormal;
+		vector <glm::vec3*> meshVerts = mesh->getVertex();
+		vector <glm::vec2*> meshTexts = mesh->getTexts();
+		vector <glm::vec3*> meshNorms = mesh->getNorms();
 		for (Face* face : group->getFaces()) {
-			vector<int> verts = face->getVerts();
-			vector<int> colors = face->getColors();
-			for (int i = 0; i < face->getNumOfVertices(); i++) {
-				glm::vec3* pos = mesh->getVertex()[verts[i]];
+			vector<int> faceVerts = face->getVerts();
+			vector<int> faceTexts = face->getTexts();
+			vector<int> faceNorms = face->getNorms();
+			for (int i = 0; i < face->getNumOfVertices(); i++) {	// TODO: tratar faces com 4 vértices
+				glm::vec3* pos = meshVerts[faceVerts[i]];
 				vPosition.push_back(pos->x);
 				vPosition.push_back(pos->y);
 				vPosition.push_back(pos->z);
-				glm::vec3* col = mesh->getColors()[colors[i]];
-				vColor.push_back(col->x);
-				vColor.push_back(col->y);
-				vColor.push_back(col->z);
+				glm::vec2* text = meshTexts[faceTexts[i]];
+				vTexture.push_back(text->x);
+				vTexture.push_back(text->y);
+				glm::vec3* norm = meshNorms[faceNorms[i]];
+				vNormal.push_back(norm->x);
+				vNormal.push_back(norm->y);
+				vNormal.push_back(norm->z);
 			}
 		}
 
@@ -36,22 +115,31 @@ void ObjManager::objToVAO(Obj3D* obj) {
 		glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vPosition.size(), vPosition.data(), GL_STATIC_DRAW);
 
-		// 4) criar um VBO para vns (por enquanto é a cor)
-		GLuint colorVBO;
-		glGenBuffers(1, &colorVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vColor.size(), vColor.data(), GL_STATIC_DRAW);
+		// 4) criar um VBO para vns
+		GLuint normalVBO;
+		glGenBuffers(1, &normalVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vNormal.size(), vNormal.data(), GL_STATIC_DRAW);
 
-		// TODO: 5) criar um VBO para vts
+		// 5) criar um VBO para vts
+		GLuint textureVBO;
+		glGenBuffers(1, &textureVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, textureVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vTexture.size(), vTexture.data(), GL_STATIC_DRAW);
 
 		// 6) definir layout e atributos do VAO     
 		//    para leitura dos VBOs
 		glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, textureVBO);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+		glEnableVertexAttribArray(2);
 
 		// TODO: ver com o Tonietto se tem como colocar índices para mais de um atributo
 		// GLuint EBO;
@@ -67,27 +155,27 @@ void ObjManager::objToVAO(Obj3D* obj) {
 Obj3D* ObjManager::getHardcoded2DHouse() {
 
 	Face* wallFace1 = new Face();
-	wallFace1->addVertex(0, 0);
-	wallFace1->addVertex(1, 0);
-	wallFace1->addVertex(3, 0);
+	wallFace1->addVertex(0, 0, 0);
+	wallFace1->addVertex(1, 0, 0);
+	wallFace1->addVertex(3, 0, 0);
 	Face* wallFace2 = new Face();
-	wallFace2->addVertex(1, 1);
-	wallFace2->addVertex(2, 1);
-	wallFace2->addVertex(3, 1);
+	wallFace2->addVertex(1, 0, 0);
+	wallFace2->addVertex(2, 0, 0);
+	wallFace2->addVertex(3, 0, 0);
 
 	Face* doorFace1 = new Face();
-	doorFace1->addVertex(4, 3);
-	doorFace1->addVertex(5, 3);
-	doorFace1->addVertex(7, 3);
+	doorFace1->addVertex(4, 1, 0);
+	doorFace1->addVertex(5, 1, 0);
+	doorFace1->addVertex(7, 1, 0);
 	Face* doorFace2 = new Face();
-	doorFace2->addVertex(5, 3);
-	doorFace2->addVertex(6, 3);
-	doorFace2->addVertex(7, 3);
+	doorFace2->addVertex(5, 1, 0);
+	doorFace2->addVertex(6, 1, 0);
+	doorFace2->addVertex(7, 1, 0);
 
 	Face* roofFace = new Face();
-	roofFace->addVertex(8, 2);
-	roofFace->addVertex(0, 2);
-	roofFace->addVertex(3, 2);
+	roofFace->addVertex(8, 0, 0);
+	roofFace->addVertex(0, 1, 0);
+	roofFace->addVertex(3, 1, 0);
 
 	Group* wallGroup = new Group();
 	wallGroup->addFace(wallFace1);
@@ -111,10 +199,10 @@ Obj3D* ObjManager::getHardcoded2DHouse() {
 
 	mesh->addVertex(new glm::vec3(0.0f, 0.5f, 0.0f));	// roof
 
-	mesh->addColor(new glm::vec3(1.0f, 0.0f, 0.0f));	// red
-	mesh->addColor(new glm::vec3(0.0f, 1.0f, 0.0f));	// blue
-	mesh->addColor(new glm::vec3(0.0f, 0.0f, 1.0f));	// green
-	mesh->addColor(new glm::vec3(0.0f, 0.0f, 0.0f));	// black
+	mesh->addNormal(new glm::vec3(0.0f, 0.0f, 1.0f));	// normal global
+
+	mesh->addTexture(new glm::vec2(1.0f, 0.0f));		// red
+	mesh->addTexture(new glm::vec2(0.0f, 1.0f));		// green
 	mesh->addGroup(wallGroup);
 	mesh->addGroup(doorGroup);
 	mesh->addGroup(roofGroup);

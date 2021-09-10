@@ -9,14 +9,6 @@ vector<glm::vec3*> Mesh::getVertex() {
 	return vertex;
 }
 
-void Mesh::addColor(glm::vec3* color) {
-	this->colors.push_back(color);
-}
-
-vector<glm::vec3*> Mesh::getColors() {
-	return colors;
-}
-
 void Mesh::addNormal(glm::vec3* norm) {
 	this->norms.push_back(norm);
 }
