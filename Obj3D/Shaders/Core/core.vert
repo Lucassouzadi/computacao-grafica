@@ -13,6 +13,6 @@ uniform mat4 projection;
 
 void main()
 {
-	color = vec3(vTexture, 0.5);
-	gl_Position = translate * vec4(vPosition, 1.0);
+	color = vec3((vNormal+1)/2);
+	gl_Position = projection * view * model * vec4(vPosition, 1.0);
 }

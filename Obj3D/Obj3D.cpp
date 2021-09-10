@@ -1,6 +1,11 @@
 #include "Obj3D.h"
 
 
+void Obj3D::setCollision(bool direction)
+{
+	this->collision = collision;
+}
+
 void Obj3D::setDirection(glm::vec3 direction)
 {
 	this->direction = direction;
@@ -19,6 +24,11 @@ void Obj3D::setMesh(Mesh* mesh)
 void Obj3D::setTranslate(glm::mat4 translate)
 {
 	this->translate = translate;
+}
+
+bool Obj3D::getCollision()
+{
+	return collision;
 }
 
 glm::vec3 Obj3D::getDirection()
