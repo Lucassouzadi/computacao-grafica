@@ -28,7 +28,7 @@ class System
 {
 private:
 	// Screen
-	const GLint WIDTH = 600, HEIGHT = 600;
+	const GLint WIDTH = 800, HEIGHT = 600;
 	int screenWidth, screenHeight;
 
 public:
@@ -44,6 +44,8 @@ public:
 	int SystemSetup();
 
 	void Run();
+
+	void ProcessInput(GLFWwindow* window, double currentseconds);
 
 	void Finish();
 
