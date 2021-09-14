@@ -224,3 +224,107 @@ Obj3D* ObjManager::getHardcoded2DHouse() {
 	obj->setTranslate(glm::mat4(1.0f));
 	return obj;
 }
+
+Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
+
+	Face* t1face1 = new Face();
+	t1face1->addVertex(0, 0, 0);
+	t1face1->addVertex(1, 0, 1);
+	t1face1->addVertex(2, 0, 2);
+	Face* t2face1 = new Face();
+	t2face1->addVertex(2, 0, 2);
+	t2face1->addVertex(3, 0, 3);
+	t2face1->addVertex(0, 0, 0);
+	Face* t1face2 = new Face();
+	t1face2->addVertex(0, 0, 0);
+	t1face2->addVertex(4, 0, 4);
+	t1face2->addVertex(5, 0, 5);
+	Face* t2face2 = new Face();
+	t2face2->addVertex(5, 0, 5);
+	t2face2->addVertex(1, 0, 1);
+	t2face2->addVertex(0, 0, 0);
+	Face* t1face3 = new Face();
+	t1face3->addVertex(4, 0, 4);
+	t1face3->addVertex(7, 0, 7);
+	t1face3->addVertex(6, 0, 6);
+	Face* t2face3 = new Face();
+	t2face3->addVertex(6, 0, 6);
+	t2face3->addVertex(5, 0, 5);
+	t2face3->addVertex(4, 0, 4);
+	Face* t1face4 = new Face();
+	t1face4->addVertex(7, 0, 7);
+	t1face4->addVertex(3, 0, 3);
+	t1face4->addVertex(2, 0, 2);
+	Face* t2face4 = new Face();
+	t2face4->addVertex(2, 0, 2);
+	t2face4->addVertex(6, 0, 6);
+	t2face4->addVertex(7, 0, 7);
+	Face* t1face5 = new Face();
+	t1face5->addVertex(4, 0, 4);
+	t1face5->addVertex(0, 0, 0);
+	t1face5->addVertex(3, 0, 3);
+	Face* t2face5 = new Face();
+	t2face5->addVertex(3, 0, 3);
+	t2face5->addVertex(7, 0, 7);
+	t2face5->addVertex(4, 0, 4);
+	Face* t1face6 = new Face();
+	t1face6->addVertex(1, 0, 1);
+	t1face6->addVertex(5, 0, 5);
+	t1face6->addVertex(6, 0, 6);
+	Face* t2face6 = new Face();
+	t2face6->addVertex(6, 0, 6);
+	t2face6->addVertex(2, 0, 2);
+	t2face6->addVertex(1, 0, 1);
+
+	Group* face1 = new Group();
+	face1->addFace(t1face1);
+	face1->addFace(t2face1);
+	Group* face2 = new Group();
+	face2->addFace(t1face2);
+	face2->addFace(t2face2);
+	Group* face3 = new Group();
+	face3->addFace(t1face3);
+	face3->addFace(t2face3);
+	Group* face4 = new Group();
+	face4->addFace(t1face4);
+	face4->addFace(t2face4);
+	Group* face5 = new Group();
+	face5->addFace(t1face5);
+	face5->addFace(t2face5);
+	Group* face6 = new Group();
+	face6->addFace(t1face6);
+	face6->addFace(t2face6);
+
+	Mesh* mesh = new Mesh();
+	mesh->addVertex(new glm::vec3(size, size, size));		// front top right
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f))));
+	mesh->addVertex(new glm::vec3(size, -size, size));		// front bottom right
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f))));
+	mesh->addVertex(new glm::vec3(-size, -size, size));	// front bottom left
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, -1.0f, 1.0f))));
+	mesh->addVertex(new glm::vec3(-size, size, size));		// front top left
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, 1.0f, 1.0f))));
+	mesh->addVertex(new glm::vec3(size, size, -size));		// back top right
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, 1.0f, -1.0f))));
+	mesh->addVertex(new glm::vec3(size, -size, -size));		// back bottom right
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, -1.0f, -1.0f))));
+	mesh->addVertex(new glm::vec3(-size, -size, -size));	// back bottom left
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, -1.0f, -1.0f))));
+	mesh->addVertex(new glm::vec3(-size, size, -size));		// back top left
+	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, 1.0f, -1.0f))));
+
+	mesh->addTexture(new glm::vec2(0.0f, 0.0f));
+
+	mesh->addGroup(face1);
+	mesh->addGroup(face2);
+	mesh->addGroup(face3);
+	mesh->addGroup(face4);
+	mesh->addGroup(face5);
+	mesh->addGroup(face6);
+
+	Obj3D* obj = new Obj3D();
+	obj->setName("Cubo da massa");
+	obj->setMesh(mesh);
+	obj->setTranslate(glm::mat4(1.0f));
+	return obj;
+}

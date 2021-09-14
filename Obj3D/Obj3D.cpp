@@ -1,7 +1,7 @@
 #include "Obj3D.h"
 
 
-void Obj3D::setCollision(bool direction)
+void Obj3D::setCollision(bool collision)
 {
 	this->collision = collision;
 }

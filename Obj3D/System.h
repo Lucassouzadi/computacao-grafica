@@ -45,7 +45,7 @@ public:
 
 	void Run();
 
-	void ProcessInput(GLFWwindow* window, double currentseconds);
+	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
 
 	void Finish();
 
