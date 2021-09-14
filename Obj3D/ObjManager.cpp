@@ -13,9 +13,7 @@ Mesh* ObjManager::readObj(string filename) {
 		sline << line;
 		string lineType;
 		sline >> lineType;
-		if (lineType.size() == 0 || lineType == "#") {
-			continue;
-		}
+		if (lineType == "" || lineType[0] == '#') continue;
 		if (lineType == "v") {
 			float x, y, z;
 			sline >> x >> y >> z;
@@ -45,6 +43,7 @@ Mesh* ObjManager::readObj(string filename) {
 				int n = 0;
 
 				while (getline(stoken, aux, '/')) {
+					if (aux == "") continue;
 					int x = stoi(aux) - 1;
 					switch (i++) {
 						case 0: v = x; break;
@@ -68,36 +67,55 @@ Mesh* ObjManager::readObj(string filename) {
 			group->setName(groupName);
 		}
 		else {   
-			cout << "tipo não reconhecido: "<< lineType << endl;
+			cout << "[" << filename << "] tipo não reconhecido: " << lineType << endl;
 		}
 	}
 	mesh->addGroup(group);
 	return mesh;
 }
 
+void addTriangle(Group* group, Mesh* mesh, Face* face, vector <GLfloat>* vPosition, vector <GLfloat>* vTexture, vector <GLfloat>* vNormal, int v1, int v2, int v3) {
+	vector <glm::vec3*> meshVerts = mesh->getVertex();
+	vector <glm::vec2*> meshTexts = mesh->getTexts();
+	vector <glm::vec3*> meshNorms = mesh->getNorms();
+	int vertIndexes[3] = { v1, v2, v3 };
+	for (int currentVertIndex : vertIndexes) {	// TODO: tratar faces com 4 vértices
+		vector<int> faceVerts = face->getVerts();
+		vector<int> faceTexts = face->getTexts();
+		vector<int> faceNorms = face->getNorms();
+		glm::vec3* pos = meshVerts[faceVerts[currentVertIndex]];
+		vPosition->push_back(pos->x);
+		vPosition->push_back(pos->y);
+		vPosition->push_back(pos->z);
+		glm::vec2* text = meshTexts[faceTexts[currentVertIndex]];
+		vTexture->push_back(text->x);
+		vTexture->push_back(text->y);
+		glm::vec3* norm = meshNorms[faceNorms[currentVertIndex]];
+		vNormal->push_back(norm->x);
+		vNormal->push_back(norm->y);
+		vNormal->push_back(norm->z);
+	}
+	group->setNumVertices(group->getNumVertices() + 3);
+}
+
 void ObjManager::objToVAO(Obj3D* obj) {
 	Mesh* mesh = obj->getMesh();
 	for (Group* group : mesh->getGroups()) {
+		group->setNumVertices(0);
 		vector <GLfloat> vPosition, vTexture, vNormal;
 		vector <glm::vec3*> meshVerts = mesh->getVertex();
 		vector <glm::vec2*> meshTexts = mesh->getTexts();
 		vector <glm::vec3*> meshNorms = mesh->getNorms();
 		for (Face* face : group->getFaces()) {
-			vector<int> faceVerts = face->getVerts();
-			vector<int> faceTexts = face->getTexts();
-			vector<int> faceNorms = face->getNorms();
-			for (int i = 0; i < face->getNumOfVertices(); i++) {	// TODO: tratar faces com 4 vértices
-				glm::vec3* pos = meshVerts[faceVerts[i]];
-				vPosition.push_back(pos->x);
-				vPosition.push_back(pos->y);
-				vPosition.push_back(pos->z);
-				glm::vec2* text = meshTexts[faceTexts[i]];
-				vTexture.push_back(text->x);
-				vTexture.push_back(text->y);
-				glm::vec3* norm = meshNorms[faceNorms[i]];
-				vNormal.push_back(norm->x);
-				vNormal.push_back(norm->y);
-				vNormal.push_back(norm->z);
+			if (face->getNumOfVertices() == 3) {
+				addTriangle(group, mesh, face, &vPosition, &vTexture, &vNormal, 0, 1, 2);
+			}
+			else if (face->getNumOfVertices() == 4) {
+				addTriangle(group, mesh, face, &vPosition, &vTexture, &vNormal, 0, 1, 2);
+				addTriangle(group, mesh, face, &vPosition, &vTexture, &vNormal, 2, 3, 0);
+			}
+			else {
+				printf("Faces com %i vértices não suportada", face->getNumOfVertices());
 			}
 		}
 
@@ -140,13 +158,6 @@ void ObjManager::objToVAO(Obj3D* obj) {
 		glBindBuffer(GL_ARRAY_BUFFER, textureVBO);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(2);
-
-		// TODO: ver com o Tonietto se tem como colocar índices para mais de um atributo
-		// GLuint EBO;
-		// glGenBuffers(1, &EBO);
-		// Index Buffer TODO: ver com o Tonietto se tem como usar índices pra mais de um atributo
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		// glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 		glBindVertexArray(0); // Unbind VAO
 	}

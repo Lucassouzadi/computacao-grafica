@@ -17,6 +17,7 @@ class Group {
 		void setMaterial(string material);
 		void addFace(Face* face);
 		void setVAO(unsigned int VAO);
+		void setNumVertices(int numVertices);
 		string getName();
 		string getMaterial();
 		vector<Face*> getFaces();

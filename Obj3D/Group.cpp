@@ -1,6 +1,10 @@
 #include "Group.h"
 
 
+void Group::setNumVertices(int numVertices) {
+	this->numVertices = numVertices;
+}
+
 unsigned int Group::getVAO() {
 	return VAO;
 }
@@ -15,7 +19,6 @@ unsigned int Group::getNumVertices() {
 
 void Group::addFace(Face* face) {
 	faces.push_back(face);
-	numVertices += face->getNumOfVertices();
 }
 
 vector<Face*> Group::getFaces() {

@@ -8,7 +8,7 @@ glm::vec3 cameraPosition = glm::vec3(0.0f, 1.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-float cameraSpeed = 0.2;
+float cameraSpeed = 0.1;
 
 //mouse configs
 bool firstMouse = true;
@@ -18,7 +18,7 @@ float lastX;
 float lastY;
 float fov = 45.0f;
 
-float mouseSensitivity = 1.0f;
+float mouseSensitivity = 0.8f;
 
 float dot(glm::vec3 v1, glm::vec3 v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
@@ -152,19 +152,25 @@ void System::Run()
 {
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* paintballField = new Obj3D();
-	paintballField->setCollision(false);
-	paintballField->setMesh(objManager->readObj("obj/cenaPaintball.obj"));
-	objManager->objToVAO(paintballField);
-
 	Obj3D* table = new Obj3D();
 	table->setCollision(false);
 	table->setMesh(objManager->readObj("obj/mesa01.obj"));
 	objManager->objToVAO(table);
 
+	Obj3D* paintballField = new Obj3D();
+	paintballField->setCollision(false);
+	paintballField->setMesh(objManager->readObj("obj/cenaPaintball.obj"));
+	objManager->objToVAO(paintballField);
+
+	Obj3D* libertyStatue = new Obj3D();
+	libertyStatue->setCollision(false);
+	libertyStatue->setMesh(objManager->readObj("obj/LibertStatue.obj"));
+	objManager->objToVAO(libertyStatue);
+
+
 	vector<Obj3D*> objs = vector<Obj3D*>();
+	objs.push_back(libertyStatue);
 	objs.push_back(paintballField);
-	objs.push_back(table);
 	objs.push_back(table);
 
 	int modelLocation = glGetUniformLocation(coreShader.program, "model");
@@ -200,7 +206,7 @@ void System::Run()
 		glm::mat4 projection = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
 
-		projection = glm::perspective(glm::radians(90.0f), (float)screenWidth / (float)screenHeight, 0.1f, 1000.0f);
+		projection = glm::perspective(glm::radians(90.0f), (float)screenWidth / (float)screenHeight, 0.01f, 1000.0f);
 
 		/*float radius = 100.0f;
 		float camX = sin(currentSeconds);
