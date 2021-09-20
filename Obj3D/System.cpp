@@ -4,7 +4,7 @@ constexpr auto PI = 3.14159265;
 
 using namespace std;
 
-glm::vec3 cameraPosition = glm::vec3(0.0f, 1.0f, 3.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 50.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -97,7 +97,7 @@ int System::SystemSetup()
 	return EXIT_SUCCESS;
 }
 
-void System::ProcessInput(GLFWwindow* window,  float elapsedSeconds)
+void System::ProcessInput(GLFWwindow* window, float elapsedSeconds)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -153,47 +153,63 @@ float rads(float degrees) {
 
 void System::Run()
 {
+	float worldSize = 50.0f;
 	float radsXY = rads(48.0f);
 	float radsXZ = rads(15.0f);
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* table = new Obj3D();
-	table->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.3f)));
-	table->setCollision(true);
-	table->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	table->setMesh(objManager->readObj("obj/mesa01.obj"));
-	objManager->objToVAO(table);
+	Obj3D* table1 = new Obj3D();
+	table1->setName("table1");
+	table1->setScale(glm::vec3(0.8f));
+	table1->setCollision(true);
+	table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
+	table1->setMesh(objManager->readObj("obj/mesa01.obj"));
+	objManager->objToVAO(table1);
 
-	Obj3D* paintballField = new Obj3D();
-	paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.5f)));
-	paintballField->setCollision(true);
-	paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
-	paintballField->setMesh(objManager->readObj("obj/cenaPaintball.obj"));
-	objManager->objToVAO(paintballField);
+	Obj3D* table2 = new Obj3D();
+	table2->setName("table2");
+	table1->setScale(glm::vec3(0.3f));
+	table2->setCollision(true);
+	table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
+	table2->setMesh(objManager->readObj("obj/mesa01.obj"));
+	objManager->objToVAO(table2);
 
-	//Obj3D* libertyStatue = new Obj3D();
-	//libertyStatue->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(2.0f)));
-	//libertyStatue->setCollision(true);
-	//libertyStatue->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	//libertyStatue->setMesh(objManager->readObj("obj/LibertStatue.obj"));
-	//objManager->objToVAO(libertyStatue);
+	//Obj3D* paintballField = new Obj3D();
+	//paintballField->setName("paintballField");
+	//paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.6f)));
+	//paintballField->setCollision(true);
+	//paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
+	//paintballField->setMesh(objManager->readObj("obj/cenaPaintball.obj"));
+	//objManager->objToVAO(paintballField);
 
-	float worldSize = 50.0f;
+	Obj3D* libertyStatue = new Obj3D();
+	libertyStatue->setName("libertyStatue");
+
+	libertyStatue->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
+	//libertyStatue->setRotation(90.0f);
+	libertyStatue->setScale(glm::vec3(20.0f));
+
+	libertyStatue->setCollision(false);
+	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
+	libertyStatue->setMesh(objManager->readObj("obj/LibertStatue.obj"));
+	objManager->objToVAO(libertyStatue);
+
 	Obj3D* worldLimits = objManager->getHardcodedCube(worldSize);
 	objManager->objToVAO(worldLimits);
 
 
 	vector<Obj3D*> objs = vector<Obj3D*>();
-	//objs.push_back(libertyStatue);
-	objs.push_back(paintballField);
-	objs.push_back(table);
+	objs.push_back(libertyStatue);
+	//objs.push_back(paintballField);
+	objs.push_back(table1);
+	objs.push_back(table2);
 
 	int modelLocation = glGetUniformLocation(coreShader.program, "model");
 	int projectionLocation = glGetUniformLocation(coreShader.program, "projection");
 	int viewLocation = glGetUniformLocation(coreShader.program, "view");
 
-	float objSpeed = 60.0f;
+	float objSpeed = 10.0f;
 
 
 	glm::vec3 NR = glm::vec3(-1.0f, 0.0f, 0.0f);
@@ -246,37 +262,37 @@ void System::Run()
 					glm::vec3 distanceUntillCollidedBorder;
 					glm::vec3 collisionNormal;
 					if (collidedWithBorder = vertFuturePos.x > worldSize) {		// Right border colision
-						printf("Collision with Right border\n");
+						cout << "[" << obj->getName() << "]- Collision with Right border" << endl;
 						float xUntilRightBorder = worldSize - vertPos.x;
 						distanceUntillCollidedBorder = delta * (xUntilRightBorder / delta.x);
 						collisionNormal = NR;
 					}
 					else if (collidedWithBorder = vertFuturePos.x < -worldSize) {	// Left border colision
-						printf("Collision with Left border\n");
+						cout << "[" << obj->getName() << "]- Collision with Left border" << endl;
 						float xUntilLeftBorder = -worldSize - vertPos.x;
 						distanceUntillCollidedBorder = delta * (xUntilLeftBorder / delta.x);
 						collisionNormal = NL;
 					}
 					else if (collidedWithBorder = vertFuturePos.y > worldSize) {	// Top border colision
-						printf("Collision with Top border\n");
+						cout << "[" << obj->getName() << "]- Collision with Top border" << endl;
 						float yUntilTopBorder = worldSize - vertPos.y;
 						distanceUntillCollidedBorder = delta * (yUntilTopBorder / delta.y);
 						collisionNormal = NT;
 					}
 					else if (collidedWithBorder = vertFuturePos.y < -worldSize) {	// Bottom border colision
-						printf("Collision with Bottom border\n");
+						cout << "[" << obj->getName() << "]- Collision with Bottom border" << endl;
 						float yUntilBottomBorder = -worldSize - vertPos.y;
 						distanceUntillCollidedBorder = delta * (yUntilBottomBorder / delta.y);
 						collisionNormal = NB;
 					}
 					else if (collidedWithBorder = vertFuturePos.z > worldSize) {	// Front border colision
-						printf("Collision with Front border\n");
+						cout << "[" << obj->getName() << "]- Collision with Front border" << endl;
 						float zUntilRightBorder = worldSize - vertPos.z;
 						distanceUntillCollidedBorder = delta * (zUntilRightBorder / delta.z);
 						collisionNormal = NFront;
 					}
 					else if (collidedWithBorder = vertFuturePos.z < -worldSize) {	// Back border colision
-						printf("Collision with Back border\n");
+						cout << "[" << obj->getName() << "]- Collision with Back border" << endl;
 						float zUntilRightBorder = -worldSize - vertPos.z;
 						distanceUntillCollidedBorder = delta * (zUntilRightBorder / delta.z);
 						collisionNormal = NBack;
@@ -285,13 +301,18 @@ void System::Run()
 					if (collidedWithBorder) {
 						delta -= distanceUntillCollidedBorder;
 						delta = glm::vec3(reflexao(delta, collisionNormal));
-						obj->setTranslate(glm::translate(obj->getTranslate(), glm::vec3(distanceUntillCollidedBorder)));
+						obj->setPosition(obj->getPosition()+ glm::vec3(distanceUntillCollidedBorder));
 						obj->setDirection(glm::vec3(reflexao(objCurrentDirection, collisionNormal)));
 						vertIndex = 0;
 					}
 				}
 			}
-			obj->setTranslate(glm::translate(obj->getTranslate(), glm::vec3(delta)));
+
+			obj->setPosition(obj->getPosition() + glm::vec3(delta));
+			obj->setEulerAngles(glm::vec3(0.0f, currentSeconds * 10, 0.0f));
+
+
+			cout << cameraFront.x << " " << cameraFront.z << " " << obj->getEulerAngles().y << endl;
 
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 			glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
@@ -303,7 +324,7 @@ void System::Run()
 			for (Group* group : obj->getMesh()->getGroups()) {
 				glBindVertexArray(group->getVAO());
 				glDrawArrays(GL_TRIANGLES, 0, group->getNumVertices());
-				//glDrawArrays(GL_POINTS, 0, group->getNumVertices());
+				glDrawArrays(GL_POINTS, 0, group->getNumVertices());
 				//glDrawArrays(GL_LINE_STRIP, 0, group->getNumVertices());
 				glBindVertexArray(0);
 			}

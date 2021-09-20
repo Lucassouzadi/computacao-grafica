@@ -221,7 +221,6 @@ Obj3D* ObjManager::getHardcoded2DHouse() {
 	Obj3D* obj = new Obj3D();
 	obj->setName("Casinha da massa");
 	obj->setMesh(mesh);
-	obj->setTranslate(glm::mat4(1.0f));
 	return obj;
 }
 
@@ -300,7 +299,7 @@ Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f))));
 	mesh->addVertex(new glm::vec3(size, -size, size));		// front bottom right
 	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(1.0f, -1.0f, 1.0f))));
-	mesh->addVertex(new glm::vec3(-size, -size, size));	// front bottom left
+	mesh->addVertex(new glm::vec3(-size, -size, size));		// front bottom left
 	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, -1.0f, 1.0f))));
 	mesh->addVertex(new glm::vec3(-size, size, size));		// front top left
 	mesh->addNormal(new glm::vec3(glm::normalize(glm::vec3(-1.0f, 1.0f, 1.0f))));
@@ -325,6 +324,5 @@ Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 	Obj3D* obj = new Obj3D();
 	obj->setName("Cubo da massa");
 	obj->setMesh(mesh);
-	obj->setTranslate(glm::mat4(1.0f));
 	return obj;
 }
