@@ -2,6 +2,8 @@
 #include <glm\gtc\matrix_transform.hpp>
 
 Obj3D::Obj3D() {
+	this->globalPMin = new glm::vec3(numeric_limits<float>::max());
+	this->globalPMax = new glm::vec3(-numeric_limits<float>::max());
 	this->position = glm::vec3(0.0f);
 	this->eulerAngles = glm::vec3(0.0f);
 	this->scale = glm::vec3(1.0f);
@@ -57,6 +59,14 @@ void Obj3D::setMesh(Mesh* mesh)
 	this->mesh = mesh;
 }
 
+void Obj3D::setGlobalPMin(glm::vec3* p) {
+	this->globalPMin = p;
+}
+
+void Obj3D::setGlobalPMax(glm::vec3* p) {
+	this->globalPMax = p;
+}
+
 bool Obj3D::getCollision()
 {
 	return collision;
@@ -94,4 +104,12 @@ glm::vec3 Obj3D::getPosition()
 glm::vec3 Obj3D::getScale()
 {
 	return scale;
+}
+
+glm::vec3* Obj3D::getGlobalPMin() {
+	return globalPMin;
+}
+
+glm::vec3* Obj3D::getGlobalPMax() {
+	return globalPMax;
 }

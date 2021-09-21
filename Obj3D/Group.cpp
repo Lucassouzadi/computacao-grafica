@@ -1,6 +1,11 @@
 #include "Group.h"
 
 
+Group::Group() {
+	this->pMin = new glm::vec3(numeric_limits<float>::max());
+	this->pMax = new glm::vec3(-numeric_limits<float>::max());
+}
+
 void Group::setNumVertices(int numVertices) {
 	this->numVertices = numVertices;
 }
@@ -11,6 +16,14 @@ unsigned int Group::getVAO() {
 
 void Group::setVAO(unsigned int VAO) {
 	this->VAO = VAO;
+}
+
+void Group::setPMin(glm::vec3* p) {
+	this->pMin = p;
+}
+
+void Group::setPMax(glm::vec3* p) {
+	this->pMax = p;
 }
 
 unsigned int Group::getNumVertices() {
@@ -35,4 +48,12 @@ void Group::setMaterial(string material) {
 
 string Group::getMaterial() {
 	return material;
+}
+
+glm::vec3* Group::getPMin() {
+	return pMin;
+}
+
+glm::vec3* Group::getPMax() {
+	return pMax;
 }

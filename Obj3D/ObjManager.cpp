@@ -1,7 +1,9 @@
 ﻿#include "ObjManager.h"
 #include "System.h"
+#include <limits>
 
-Mesh* ObjManager::readObj(string filename) {
+Obj3D* ObjManager::readObj(string filename) {
+	Obj3D* obj = new Obj3D();
 	Mesh* mesh = new Mesh();
 	Group* group = new Group();
 	bool firstGroup = true;
@@ -17,7 +19,16 @@ Mesh* ObjManager::readObj(string filename) {
 		if (lineType == "v") {
 			float x, y, z;
 			sline >> x >> y >> z;
-			mesh->addVertex(new glm::vec3(x, y, z));
+			glm::vec3* vector = new glm::vec3(x, y, z);
+
+			if (vector->x > obj->getGlobalPMax()->x) obj->getGlobalPMax()->x = vector->x;
+			if (vector->y > obj->getGlobalPMax()->y) obj->getGlobalPMax()->y = vector->y;
+			if (vector->z > obj->getGlobalPMax()->z) obj->getGlobalPMax()->z = vector->z;
+			if (vector->x < obj->getGlobalPMin()->x) obj->getGlobalPMin()->x = vector->x;
+			if (vector->y < obj->getGlobalPMin()->y) obj->getGlobalPMin()->y = vector->y;
+			if (vector->z < obj->getGlobalPMin()->z) obj->getGlobalPMin()->z = vector->z;
+
+			mesh->addVertex(vector);
 		}
 		else if (lineType == "vn") {
 			float nx, ny, nz;
@@ -71,7 +82,8 @@ Mesh* ObjManager::readObj(string filename) {
 		}
 	}
 	mesh->addGroup(group);
-	return mesh;
+	obj->setMesh(mesh);
+	return obj;
 }
 
 void addTriangle(Group* group, Mesh* mesh, Face* face, vector <GLfloat>* vPosition, vector <GLfloat>* vTexture, vector <GLfloat>* vNormal, int v1, int v2, int v3) {
@@ -79,7 +91,7 @@ void addTriangle(Group* group, Mesh* mesh, Face* face, vector <GLfloat>* vPositi
 	vector <glm::vec2*> meshTexts = mesh->getTexts();
 	vector <glm::vec3*> meshNorms = mesh->getNorms();
 	int vertIndexes[3] = { v1, v2, v3 };
-	for (int currentVertIndex : vertIndexes) {	// TODO: tratar faces com 4 vértices
+	for (int currentVertIndex : vertIndexes) {
 		vector<int> faceVerts = face->getVerts();
 		vector<int> faceTexts = face->getTexts();
 		vector<int> faceNorms = face->getNorms();
@@ -94,6 +106,13 @@ void addTriangle(Group* group, Mesh* mesh, Face* face, vector <GLfloat>* vPositi
 		vNormal->push_back(norm->x);
 		vNormal->push_back(norm->y);
 		vNormal->push_back(norm->z);
+
+		if (pos->x > group->getPMax()->x) group->getPMax()->x = pos->x;
+		if (pos->y > group->getPMax()->y) group->getPMax()->y = pos->y;
+		if (pos->z > group->getPMax()->z) group->getPMax()->z = pos->z;
+		if (pos->x < group->getPMin()->x) group->getPMin()->x = pos->x;
+		if (pos->y < group->getPMin()->y) group->getPMin()->y = pos->y;
+		if (pos->z < group->getPMin()->z) group->getPMin()->z = pos->z;
 	}
 	group->setNumVertices(group->getNumVertices() + 3);
 }

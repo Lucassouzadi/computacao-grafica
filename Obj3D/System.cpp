@@ -153,37 +153,36 @@ float rads(float degrees) {
 
 void System::Run()
 {
+
+	float objSpeed = 0.0f;
 	float worldSize = 50.0f;
 	float radsXY = rads(48.0f);
 	float radsXZ = rads(15.0f);
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* table1 = new Obj3D();
+	Obj3D* table1 = objManager->readObj("obj/mesa01.obj");
 	table1->setName("table1");
 	table1->setScale(glm::vec3(0.8f));
 	table1->setCollision(true);
 	table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	table1->setMesh(objManager->readObj("obj/mesa01.obj"));
 	objManager->objToVAO(table1);
 
-	Obj3D* table2 = new Obj3D();
+	Obj3D* table2 = objManager->readObj("obj/mesa01.obj");
 	table2->setName("table2");
 	table1->setScale(glm::vec3(0.3f));
 	table2->setCollision(true);
 	table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
-	table2->setMesh(objManager->readObj("obj/mesa01.obj"));
 	objManager->objToVAO(table2);
 
-	//Obj3D* paintballField = new Obj3D();
+	//Obj3D* paintballField = objManager->readObj("obj/cenaPaintball.obj");
 	//paintballField->setName("paintballField");
 	//paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.6f)));
 	//paintballField->setCollision(true);
 	//paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
-	//paintballField->setMesh(objManager->readObj("obj/cenaPaintball.obj"));
 	//objManager->objToVAO(paintballField);
 
-	Obj3D* libertyStatue = new Obj3D();
+	Obj3D* libertyStatue = objManager->readObj("obj/LibertStatue.obj");
 	libertyStatue->setName("libertyStatue");
 
 	libertyStatue->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
@@ -192,7 +191,6 @@ void System::Run()
 
 	libertyStatue->setCollision(false);
 	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	libertyStatue->setMesh(objManager->readObj("obj/LibertStatue.obj"));
 	objManager->objToVAO(libertyStatue);
 
 	Obj3D* worldLimits = objManager->getHardcodedCube(worldSize);
@@ -208,8 +206,6 @@ void System::Run()
 	int modelLocation = glGetUniformLocation(coreShader.program, "model");
 	int projectionLocation = glGetUniformLocation(coreShader.program, "projection");
 	int viewLocation = glGetUniformLocation(coreShader.program, "view");
-
-	float objSpeed = 10.0f;
 
 
 	glm::vec3 NR = glm::vec3(-1.0f, 0.0f, 0.0f);

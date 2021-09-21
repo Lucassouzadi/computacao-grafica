@@ -13,6 +13,8 @@ class Obj3D {
 		glm::vec3 eulerAngles;
 		glm::vec3 scale;
 		glm::vec3 direction;
+		glm::vec3* globalPMin;
+		glm::vec3* globalPMax;
 		string name;
 		void Obj3D::computeTranslate();
 	public:
@@ -24,6 +26,8 @@ class Obj3D {
 		void setDirection(glm::vec3 direction);
 		void setMesh(Mesh* mesh);
 		void setName(string name);
+		void setGlobalPMin(glm::vec3* p);
+		void setGlobalPMax(glm::vec3* p);
 		bool getCollision();
 		glm::mat4 getTranslate();
 		glm::vec3 getPosition();
@@ -32,4 +36,6 @@ class Obj3D {
 		glm::vec3 getDirection();
 		Mesh* getMesh();
 		string getName();
+		glm::vec3* getGlobalPMin();
+		glm::vec3* getGlobalPMax();
 };
