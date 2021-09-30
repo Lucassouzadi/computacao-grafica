@@ -7,7 +7,6 @@
 class ObjManager {
 	public:
 		Obj3D* readObj(string fileName);
-		Obj3D* getHardcoded2DHouse();
 		Obj3D* getHardcodedCube(GLfloat size);
 		void objToVAO(Obj3D* obj3D);
 };

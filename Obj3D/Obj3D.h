@@ -9,6 +9,7 @@ class Obj3D {
 		bool collision;
 		Mesh* mesh;
 		glm::mat4 translate;
+		glm::vec3 origin;
 		glm::vec3 position;
 		glm::vec3 eulerAngles;
 		glm::vec3 scale;
@@ -19,6 +20,7 @@ class Obj3D {
 		void Obj3D::computeTranslate();
 	public:
 		Obj3D();
+		void setOrigin(glm::vec3 origin);
 		void setPosition(glm::vec3 position);
 		void setEulerAngles(glm::vec3 eulerAngles);
 		void setScale(glm::vec3 scale);
@@ -30,6 +32,7 @@ class Obj3D {
 		void setGlobalPMax(glm::vec3* p);
 		bool getCollision();
 		glm::mat4 getTranslate();
+		glm::vec3 getOrigin();
 		glm::vec3 getPosition();
 		glm::vec3 getEulerAngles();
 		glm::vec3 getScale();

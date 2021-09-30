@@ -5,6 +5,7 @@ Obj3D::Obj3D() {
 	this->globalPMin = new glm::vec3(numeric_limits<float>::max());
 	this->globalPMax = new glm::vec3(-numeric_limits<float>::max());
 	this->position = glm::vec3(0.0f);
+	this->origin = glm::vec3(0.0f);
 	this->eulerAngles = glm::vec3(0.0f);
 	this->scale = glm::vec3(1.0f);
 	this->computeTranslate();
@@ -12,13 +13,25 @@ Obj3D::Obj3D() {
 
 void Obj3D::computeTranslate()
 {
-	glm::mat4 newTranslate = glm::mat4(1.0f);
-	newTranslate = glm::translate(newTranslate, this->position);
-	newTranslate = glm::rotate(newTranslate, glm::radians(this->eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	newTranslate = glm::rotate(newTranslate, glm::radians(this->eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	newTranslate = glm::rotate(newTranslate, glm::radians(this->eulerAngles.z), glm::vec3(1.0f, 0.0f, 1.0f));
-	newTranslate = glm::scale(newTranslate, this->scale);
-	this->translate = newTranslate;
+	glm::mat4 newTranslate, translateMatrix, rotationX, rotationY, rotationZ, rotationMatrix, scaleMatrix;
+	
+	translateMatrix = glm::translate(glm::mat4(1.0f), this->position + this->origin);
+
+	rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	rotationMatrix = rotationX * rotationY * rotationZ * glm::translate(glm::mat4(1.0f), -this->origin);
+
+
+	scaleMatrix = glm::scale(glm::mat4(1.0f), this->scale);
+
+	this->translate = translateMatrix * rotationMatrix * scaleMatrix;
+}
+
+void Obj3D::setOrigin(glm::vec3 origin)
+{
+	this->origin = origin;
+	this->computeTranslate();
 }
 
 void Obj3D::setPosition(glm::vec3 position)
@@ -99,6 +112,11 @@ string Obj3D::getName()
 glm::vec3 Obj3D::getPosition()
 {
 	return position;
+}
+
+glm::vec3 Obj3D::getOrigin()
+{
+	return origin;
 }
 
 glm::vec3 Obj3D::getScale()

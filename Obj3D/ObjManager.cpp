@@ -54,7 +54,7 @@ Obj3D* ObjManager::readObj(string filename) {
 				int n = 0;
 
 				while (getline(stoken, aux, '/')) {
-					if (aux == "") continue;
+					if (aux == "") { i++; continue; }
 					int x = stoi(aux) - 1;
 					switch (i++) {
 						case 0: v = x; break;
@@ -80,6 +80,12 @@ Obj3D* ObjManager::readObj(string filename) {
 		else {   
 			cout << "[" << filename << "] tipo não reconhecido: " << lineType << endl;
 		}
+	}
+	if (mesh->getTexts().size() == 0) {
+		mesh->addTexture(new glm::vec2(0.0f));
+	}
+	if (mesh->getNorms().size() == 0) {
+		mesh->addNormal(new glm::vec3(0.0f));
 	}
 	mesh->addGroup(group);
 	obj->setMesh(mesh);
@@ -182,67 +188,6 @@ void ObjManager::objToVAO(Obj3D* obj) {
 	}
 }
 
-Obj3D* ObjManager::getHardcoded2DHouse() {
-
-	Face* wallFace1 = new Face();
-	wallFace1->addVertex(0, 0, 0);
-	wallFace1->addVertex(1, 0, 0);
-	wallFace1->addVertex(3, 0, 0);
-	Face* wallFace2 = new Face();
-	wallFace2->addVertex(1, 0, 0);
-	wallFace2->addVertex(2, 0, 0);
-	wallFace2->addVertex(3, 0, 0);
-
-	Face* doorFace1 = new Face();
-	doorFace1->addVertex(4, 1, 0);
-	doorFace1->addVertex(5, 1, 0);
-	doorFace1->addVertex(7, 1, 0);
-	Face* doorFace2 = new Face();
-	doorFace2->addVertex(5, 1, 0);
-	doorFace2->addVertex(6, 1, 0);
-	doorFace2->addVertex(7, 1, 0);
-
-	Face* roofFace = new Face();
-	roofFace->addVertex(8, 0, 0);
-	roofFace->addVertex(0, 1, 0);
-	roofFace->addVertex(3, 1, 0);
-
-	Group* wallGroup = new Group();
-	wallGroup->addFace(wallFace1);
-	wallGroup->addFace(wallFace2);
-	Group* doorGroup = new Group();
-	doorGroup->addFace(doorFace1);
-	doorGroup->addFace(doorFace2);
-	Group* roofGroup = new Group();
-	roofGroup->addFace(roofFace);
-
-	Mesh* mesh = new Mesh();
-	mesh->addVertex(new glm::vec3(0.4f, 0.4f, 0.0f));	// top right
-	mesh->addVertex(new glm::vec3(0.4f, -0.4f, 0.0f));	// bottom right
-	mesh->addVertex(new glm::vec3(-0.4f, -0.4f, 0.0f));	// bottom left
-	mesh->addVertex(new glm::vec3(-0.4f, 0.4f, 0.0f));	// top left
-
-	mesh->addVertex(new glm::vec3(0.05f, -0.24f, -0.01f));	// door top right
-	mesh->addVertex(new glm::vec3(0.05f, -0.4f, -0.01f));	// door bottom right
-	mesh->addVertex(new glm::vec3(-0.05f, -0.4f, -0.01f));	// door bottom left
-	mesh->addVertex(new glm::vec3(-0.05f, -0.24f, -0.01f));	// door top left
-
-	mesh->addVertex(new glm::vec3(0.0f, 0.5f, 0.0f));	// roof
-
-	mesh->addNormal(new glm::vec3(0.0f, 0.0f, 1.0f));	// normal global
-
-	mesh->addTexture(new glm::vec2(1.0f, 0.0f));		// red
-	mesh->addTexture(new glm::vec2(0.0f, 1.0f));		// green
-	mesh->addGroup(wallGroup);
-	mesh->addGroup(doorGroup);
-	mesh->addGroup(roofGroup);
-
-	Obj3D* obj = new Obj3D();
-	obj->setName("Casinha da massa");
-	obj->setMesh(mesh);
-	return obj;
-}
-
 Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 
 	Face* t1face1 = new Face();
@@ -341,6 +286,8 @@ Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 	mesh->addGroup(face6);
 
 	Obj3D* obj = new Obj3D();
+	obj->setGlobalPMax(new glm::vec3(size));
+	obj->setGlobalPMin(new glm::vec3(-size));
 	obj->setName("Cubo da massa");
 	obj->setMesh(mesh);
 	return obj;

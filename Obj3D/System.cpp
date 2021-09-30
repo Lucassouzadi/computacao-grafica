@@ -8,7 +8,7 @@ glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 50.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-float cameraSpeed = 70.0f;
+float cameraSpeed = 20.0f;
 
 //mouse configs
 bool firstMouse = true;
@@ -151,58 +151,76 @@ float rads(float degrees) {
 	return degrees * PI / 180.0f;
 }
 
+void drawObj(Obj3D* obj, GLenum mode) {
+	for (Group* group : obj->getMesh()->getGroups()) {
+		glBindVertexArray(group->getVAO());
+		glDrawArrays(mode, 0, group->getNumVertices());
+	}
+	glBindVertexArray(0);
+}
+
 void System::Run()
 {
 
 	float objSpeed = 0.0f;
 	float worldSize = 50.0f;
-	float radsXY = rads(48.0f);
-	float radsXZ = rads(15.0f);
+	float ang1 = rads(48.0f);
+	float ang2 = rads(15.0f);
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* table1 = objManager->readObj("obj/mesa01.obj");
-	table1->setName("table1");
-	table1->setScale(glm::vec3(0.8f));
-	table1->setCollision(true);
-	table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	objManager->objToVAO(table1);
+	//Obj3D* table1 = objManager->readObj("objs/mesa01.obj");
+	//table1->setName("table1");
+	//table1->setScale(glm::vec3(0.6f));
+	//table1->setPosition(glm::vec3(10.0f));
+	//table1->setCollision(false);
+	//table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
+	//objManager->objToVAO(table1);
 
-	Obj3D* table2 = objManager->readObj("obj/mesa01.obj");
-	table2->setName("table2");
-	table1->setScale(glm::vec3(0.3f));
-	table2->setCollision(true);
-	table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
-	objManager->objToVAO(table2);
+	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
+	//table2->setName("table2");
+	//table1->setScale(glm::vec3(0.3f));
+	//table2->setCollision(false);
+	//table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
+	//objManager->objToVAO(table2);
 
-	//Obj3D* paintballField = objManager->readObj("obj/cenaPaintball.obj");
+	//Obj3D* paintballField = objManager->readObj("objs/cenaPaintball.obj");
 	//paintballField->setName("paintballField");
 	//paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.6f)));
 	//paintballField->setCollision(true);
 	//paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
 	//objManager->objToVAO(paintballField);
 
-	Obj3D* libertyStatue = objManager->readObj("obj/LibertStatue.obj");
-	libertyStatue->setName("libertyStatue");
+	Obj3D* toonLink = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
+	toonLink->setName("ToonLink");
+	toonLink->setPosition(glm::vec3(20.0f));
+	toonLink->setScale(glm::vec3(1.2f));
+	toonLink->setCollision(false);
+	toonLink->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang1), sin(ang2))));
+	objManager->objToVAO(toonLink);
 
-	libertyStatue->setPosition(glm::vec3(0.0f, 0.0f, 0.0f));
-	//libertyStatue->setRotation(90.0f);
-	libertyStatue->setScale(glm::vec3(20.0f));
-
+	Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
+	libertyStatue->setName("LibertStatue");
+	libertyStatue->setScale(glm::vec3(50.0f));
 	libertyStatue->setCollision(false);
-	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
+	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
 	objManager->objToVAO(libertyStatue);
 
-	Obj3D* worldLimits = objManager->getHardcodedCube(worldSize);
-	objManager->objToVAO(worldLimits);
+	Obj3D* box = objManager->getHardcodedCube(0.5f);
+	objManager->objToVAO(box);
+
+	Obj3D* worldBox = objManager->getHardcodedCube(worldSize);
+	objManager->objToVAO(worldBox);
 
 
 	vector<Obj3D*> objs = vector<Obj3D*>();
 	objs.push_back(libertyStatue);
+	objs.push_back(toonLink);
 	//objs.push_back(paintballField);
-	objs.push_back(table1);
-	objs.push_back(table2);
+	//objs.push_back(table1);
+	//objs.push_back(table2);
 
+	int alphaLocation = glGetUniformLocation(coreShader.program, "alpha");
 	int modelLocation = glGetUniformLocation(coreShader.program, "model");
 	int projectionLocation = glGetUniformLocation(coreShader.program, "projection");
 	int viewLocation = glGetUniformLocation(coreShader.program, "view");
@@ -244,6 +262,11 @@ void System::Run()
 		glm::vec3 normalizedCamPosition = glm::normalize(camPosition);*/
 
 		view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+
+		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldBox->getTranslate()));
+		drawObj(worldBox, GL_LINE_STRIP);
 
 		for (Obj3D* obj : objs) {
 			glm::vec3 objCurrentDirection = obj->getDirection();
@@ -305,38 +328,49 @@ void System::Run()
 			}
 
 			obj->setPosition(obj->getPosition() + glm::vec3(delta));
-			obj->setEulerAngles(glm::vec3(0.0f, currentSeconds * 10, 0.0f));
+			obj->setEulerAngles(glm::vec3(currentSeconds * 3));
 
 
 			cout << cameraFront.x << " " << cameraFront.z << " " << obj->getEulerAngles().y << endl;
 
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
-			glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-
-
 			coreShader.Use();
 
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
+			drawObj(obj, GL_TRIANGLES);
+
+
+			glUniform1f(alphaLocation, 1.0f);
+
+			glm::vec3 objScale = obj->getScale();
+			glm::vec3 objPmax = *obj->getGlobalPMax();
+			glm::vec3 objPmin = *obj->getGlobalPMin();
+			glm::vec3 boundingBoxDimensions = (objPmax - objPmin) * obj->getScale();
+			glm::vec3 objCenter = ((objPmax + objPmin) * obj->getScale()) / 2.0f;
+			box->setOrigin(obj->getOrigin() - objCenter);		// Origem de rota��o da BB tem que ser o centro do objeto
+			box->setPosition(obj->getPosition() + objCenter);	// Como (0, 0, 0) est� no centro da BB, precisa somar o centro do objeto
+			box->setEulerAngles(obj->getEulerAngles());
+			box->setScale(boundingBoxDimensions);
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(box->getTranslate()));
+			drawObj(box, GL_LINE_STRIP);
+
+
 			for (Group* group : obj->getMesh()->getGroups()) {
-				glBindVertexArray(group->getVAO());
-				glDrawArrays(GL_TRIANGLES, 0, group->getNumVertices());
-				glDrawArrays(GL_POINTS, 0, group->getNumVertices());
-				//glDrawArrays(GL_LINE_STRIP, 0, group->getNumVertices());
-				glBindVertexArray(0);
+				glm::vec3 groupPmax = *group->getPMax();
+				glm::vec3 groupPmin = *group->getPMin();
+				glm::vec3 boundingBoxDimensions = (groupPmax - groupPmin) * objScale;
+				glm::vec3 groupCenter = ((groupPmax + groupPmin) * objScale) / 2.0f;
+
+				glm::vec3 groupRotationOrigin = obj->getOrigin() - groupCenter;	// Origem de rota��o da BB do grupo tem que estar ancorada na origem do objeto
+				glm::vec3 groupPosition = obj->getPosition() + groupCenter;		
+
+				box->setOrigin(groupRotationOrigin);
+				box->setPosition(groupPosition);
+				box->setEulerAngles(obj->getEulerAngles());
+				box->setScale(boundingBoxDimensions);
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(box->getTranslate()));
+				drawObj(box, GL_LINE_STRIP);
 			}
 
-		}
-
-
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldLimits->getTranslate()));
-		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
-		for (Group* group : worldLimits->getMesh()->getGroups()) {
-			glBindVertexArray(group->getVAO());
-			//glDrawArrays(GL_TRIANGLES, 0, group->getNumVertices());
-			//glDrawArrays(GL_POINTS, 0, group->getNumVertices());
-			glDrawArrays(GL_LINE_STRIP, 0, group->getNumVertices());
-			glBindVertexArray(0);
 		}
 
 		glfwSwapBuffers(window);
