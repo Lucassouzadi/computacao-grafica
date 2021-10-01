@@ -292,3 +292,60 @@ Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 	obj->setMesh(mesh);
 	return obj;
 }
+
+
+Obj3D* ObjManager::get2DCircle(GLfloat radius, int vertices) {
+
+	GLfloat twicePi = 2 * 3.14159265;
+
+	vector <GLfloat> vPosition, vNormal;
+
+	for (int i = 0; i <= vertices; i++) {
+		float angle = (i * twicePi / vertices) ;
+		float x = radius * cos(angle);
+		float y = radius * sin(angle);
+		vPosition.push_back(x);
+		vPosition.push_back(y);
+		vPosition.push_back(0.0f);
+		vNormal.push_back(1.0f);
+		vNormal.push_back(1.0f);
+		vNormal.push_back(1.0f);
+	}
+
+	GLuint circleVAO;
+	glGenVertexArrays(1, &circleVAO);
+	glBindVertexArray(circleVAO);
+
+	GLuint positionVBO;
+	glGenBuffers(1, &positionVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vPosition.size(), vPosition.data(), GL_STATIC_DRAW);
+
+	GLuint normalVBO;
+	glGenBuffers(1, &normalVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vNormal.size(), vNormal.data(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, normalVBO);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
+
+
+	Group* circle = new Group();
+	circle->setVAO(circleVAO);
+	circle->setNumVertices(vertices+1);
+
+	Mesh* mesh = new Mesh();
+	mesh->addGroup(circle);
+
+	Obj3D* obj = new Obj3D();
+	obj->setGlobalPMax(new glm::vec3(radius));
+	obj->setGlobalPMin(new glm::vec3(-radius));
+	obj->setName("circulo");
+	obj->setMesh(mesh);
+	return obj;
+}
