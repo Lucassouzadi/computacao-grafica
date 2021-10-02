@@ -37,7 +37,6 @@ void Obj3D::computeTranslate()
 	rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	rotationMatrix = rotationX * rotationY * rotationZ * glm::translate(glm::mat4(1.0f), -this->origin);
 
-
 	scaleMatrix = glm::scale(glm::mat4(1.0f), this->scale);
 
 	this->translate = translateMatrix * rotationMatrix * scaleMatrix;

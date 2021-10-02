@@ -24,6 +24,8 @@
 #include "AssetManager.h"
 #include "Time.h"
 
+#include "Obj3D.h"
+
 class System
 {
 private:
@@ -34,7 +36,8 @@ private:
 public:
 	GLFWwindow* window;
 	Shader coreShader;
-
+	Obj3D *auxCircle, *auxBox;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation;
 public:
 	System();
 	~System();
@@ -46,6 +49,8 @@ public:
 	void Run();
 
 	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
+
+	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting);
 
 	void Finish();
 
