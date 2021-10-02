@@ -28,7 +28,7 @@ class System
 {
 private:
 	// Screen
-	const GLint WIDTH = 800, HEIGHT = 600;
+	const GLint WIDTH = 1000, HEIGHT = 800;
 	int screenWidth, screenHeight;
 
 public:

@@ -171,7 +171,7 @@ void drawObj(Obj3D* obj, GLenum mode) {
 void System::Run()
 {
 
-	float objSpeed = .7f;
+	float objSpeed = 2.5f;
 	float worldSize = 50.0f;
 	float ang1 = rads(48.0f);
 	float ang2 = rads(15.0f);
@@ -186,49 +186,53 @@ void System::Run()
 	//table1->setPosition(glm::vec3(10.0f));
 	//table1->setCollision(false);
 	//table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-	//objManager->objToVAO(table1);
 
 	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
 	//table2->setName("table2");
 	//table1->setScale(glm::vec3(0.3f));
 	//table2->setCollision(false);
 	//table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
-	//objManager->objToVAO(table2);
 
 	//Obj3D* paintballField = objManager->readObj("objs/cenaPaintball.obj");
 	//paintballField->setName("paintballField");
 	//paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.6f)));
 	//paintballField->setCollision(true);
 	//paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
-	//objManager->objToVAO(paintballField);
 
-	Obj3D* toonLink = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
-	toonLink->setName("ToonLink");
-	toonLink->setPosition(glm::vec3(23.0f, 0.0f, 0.0f));
-	toonLink->setScale(glm::vec3(1.2f));
-	toonLink->setCollision(false);
-	toonLink->setDirection(glm::normalize(glm::vec3(-1.0, 0.0f, 0.0f)));
-	objManager->objToVAO(toonLink);
-	objs.push_back(toonLink);
+	Obj3D* toonLink1 = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
+	toonLink1->setName("ToonLink1");
+	toonLink1->setScale(glm::vec3(1.2f));
+	toonLink1->setCollision(false);
+	toonLink1->setDirection(glm::normalize(glm::vec3(-1.0, 0.0f, 0.0f)));
+	objs.push_back(toonLink1);
 
-	//Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
-	//libertyStatue->setName("LibertStatue");
-	//libertyStatue->setScale(glm::vec3(50.0f));
-	//libertyStatue->setCollision(false);
-	//libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
-	//objManager->objToVAO(libertyStatue);
-	//objs.push_back(libertyStatue);
+	Obj3D* toonLink2 = toonLink1->copy();
+	toonLink2->setName("ToonLink2");
+	objs.push_back(toonLink2);
+
+	//Obj3D* toonLink3 = toonLink1->copy();
+	//toonLink3->setName("ToonLink3");
+	//objs.push_back(toonLink3);
+
+	Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
+	libertyStatue->setName("LibertStatue");
+	libertyStatue->setScale(glm::vec3(18.0f));
+	libertyStatue->setCollision(false);
+	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
+	objs.push_back(libertyStatue);
 
 	Obj3D* box = objManager->getHardcodedCube(0.5f);
-	objManager->objToVAO(box);
 
 	Obj3D* worldBox = objManager->getHardcodedCube(worldSize);
-	objManager->objToVAO(worldBox);
 
-	float circleRadius = 10.0f;
-	Obj3D* circle = objManager->get2DCircle(0.5f, 30);
-	circle->setPosition(glm::vec3(0.0f, -4.0, 0.0f));
-	circle->setScale(glm::vec3(circleRadius*2));
+	float projectileRadius = 10.0f;
+	Obj3D* projectileCircle = objManager->get2DCircle(-0.5f, 30);
+	projectileCircle->setPosition(glm::vec3(0.0f, 0.0, 0.0f));
+	projectileCircle->setScale(glm::vec3(projectileRadius * 2));
+
+	Obj3D* collisionTestCircle = projectileCircle->copy();
+	collisionTestCircle->setScale(glm::vec3(1.0f));
+	collisionTestCircle->setEulerAngles(glm::vec3(0.0f));
 
 	//objs.push_back(paintballField);
 	//objs.push_back(table1);
@@ -248,7 +252,7 @@ void System::Run()
 	glm::vec3 NBack = glm::vec3(0.0f, 0.0f, 1.0f);
 
 
-	bool collided = false;
+	bool collidedWithAnyObject = false;
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -285,20 +289,19 @@ void System::Run()
 		drawObj(worldBox, GL_LINE_STRIP);
 
 		// Desenha bounding box circular
-		if (!collided) {
-			int numberOfCircles = 1;
-			for (int i = 0; i < numberOfCircles; i++) {
-				//circle->setEulerAngles(glm::vec3(-pitch, yaw, 0.0f));
-				circle->setPosition(glm::vec3(0.0f, -2.0, 0.0f));
-				circle->setScale(glm::vec3(circleRadius * 2));
-				circle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
-				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(circle->getTranslate()));
-				drawObj(circle, GL_LINE_STRIP);
-			}
-		}
+		float angle = currentSeconds / 4;
+		glm::vec3 toonlinkCenter = (*toonLink1->getGlobalPMax() + *toonLink1->getGlobalPMin())/2.0f;
+		toonlinkCenter += 12.0f * cos(currentSeconds);
+		objs[0]->setPosition(glm::vec3(35.0f * cos(angle), -toonlinkCenter.y, 30.0f * sin(angle)));
+		objs[1]->setPosition(glm::vec3(40.0f * cos(90 + angle), 40 * sin(90 + angle), -toonlinkCenter.z));
+		objs[2]->setPosition(glm::vec3(-toonlinkCenter.x, 25.0f * cos(90 + angle), 25.0f * sin(90 + angle)));
 
+		glUniform1f(alphaLocation, 1.0f);
+		collidedWithAnyObject = false;
 		for (Obj3D* obj : objs) {
-			glm::vec3 objCurrentDirection = obj->getDirection();
+			coreShader.Use();
+
+			/*glm::vec3 objCurrentDirection = obj->getDirection();
 			glm::vec3 delta = glm::vec3(elapsedSeconds * objSpeed) * objCurrentDirection;
 			if (obj->getCollision()) {
 				for (int vertIndex = 0; vertIndex < obj->getMesh()->getVertex().size(); vertIndex++) {
@@ -355,24 +358,70 @@ void System::Run()
 					}
 				}
 			}
-
-			obj->setPosition(obj->getPosition() + glm::vec3(delta));
+			*/
+			//obj->setPosition(obj->getPosition() + glm::vec3(delta));
 			//obj->setEulerAngles(glm::vec3(currentSeconds * 3));
 
-			coreShader.Use();
-
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
-			drawObj(obj, GL_TRIANGLES);
-
-
-			glUniform1f(alphaLocation, 1.0f);
-
-			// Desenha bounding box global do objeto
 			glm::vec3 objScale = obj->getScale();
 			glm::vec3 objPmax = *obj->getGlobalPMax();
 			glm::vec3 objPmin = *obj->getGlobalPMin();
-			glm::vec3 boundingBoxDimensions = (objPmax - objPmin) * obj->getScale();
 			glm::vec3 objCenter = ((objPmax + objPmin) * obj->getScale()) / 2.0f;
+			glm::vec3 P0 = objPmin * objScale + obj->getPosition();
+			glm::vec3 P1 = objPmax * objScale + obj->getPosition();
+
+			/* Teste de colisão entre a esfera e o objeto seguindo exemplo visto em aula */
+			//glm::vec3 VP = obj->getPosition() + objCenter - circle->getPosition();
+			//glm::vec3 P = normalize(VP) * circleRadius + circle->getPosition();
+
+			//bool afterMin = (P.x > P0.x && P.y > P0.y && P.z > P0.z);
+			//bool beforeMax = (P.x < P1.x && P.y < P1.y && P.z < P1.z);
+			
+			//collided = collided || afterMin && beforeMax;
+
+			/* Teste de colisão que presta */
+			glm::vec3 collisionTestCoord = projectileCircle->getPosition();
+
+			if (collisionTestCoord.x < P0.x)		// left   
+				collisionTestCoord.x = P0.x;        
+			else if (collisionTestCoord.x > P1.x)	// right
+				collisionTestCoord.x = P1.x;			
+
+			if (collisionTestCoord.y < P0.y)        // top
+				collisionTestCoord.y = P0.y;        
+			else if (collisionTestCoord.y > P1.y)	// bottom
+				collisionTestCoord.y = P1.y;			
+
+			if (collisionTestCoord.z < P0.z)		// back
+				collisionTestCoord.z = P0.z;        
+			else if (collisionTestCoord.z > P1.z)	// front
+				collisionTestCoord.z = P1.z;			
+
+			glm::vec3 collisionDistanceVector = projectileCircle->getPosition() - collisionTestCoord;
+			float distance = lenght(collisionDistanceVector);
+
+			bool collidedWithCurrentObject = distance <= projectileRadius;
+			collidedWithAnyObject = collidedWithAnyObject || collidedWithCurrentObject;
+
+			if (collidedWithCurrentObject) {
+				cout << "collided with " << obj->getName() << endl;
+			} else {
+				cout << "didn't collide with " << obj->getName() << endl;
+			}
+
+			//if (!collided) {
+			/* Desenha circulo que indica o ponto de teste de colisão com o projétil */
+			collisionTestCircle->setPosition(collisionTestCoord);
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(collisionTestCircle->getTranslate()));
+			drawObj(projectileCircle, GL_LINE_STRIP);
+			//}
+
+			/* Desenha objeto */
+			if (collidedWithAnyObject) glUniform1f(alphaLocation, 0.2f);
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
+			drawObj(obj, GL_TRIANGLES);
+
+			/* Desenha bounding box global do objeto */
+			glm::vec3 boundingBoxDimensions = (objPmax - objPmin) * obj->getScale();
 			box->setOrigin(obj->getOrigin() - objCenter);		// Origem de rota��o da BB tem que ser o centro do objeto
 			box->setPosition(obj->getPosition() + objCenter);	// Como (0, 0, 0) est� no centro da BB, precisa somar o centro do objeto
 			box->setEulerAngles(obj->getEulerAngles());
@@ -380,7 +429,7 @@ void System::Run()
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(box->getTranslate()));
 			drawObj(box, GL_LINE_STRIP);
 
-			// Desenha bounding boxes de cada um dos grupos do objeto
+			/* Desenha bounding boxes de cada um dos grupos do objeto */
 			for (Group* group : obj->getMesh()->getGroups()) {
 				glm::vec3 groupPmax = *group->getPMax();
 				glm::vec3 groupPmin = *group->getPMin();
@@ -388,7 +437,7 @@ void System::Run()
 				glm::vec3 groupCenter = ((groupPmax + groupPmin) * objScale) / 2.0f;
 
 				glm::vec3 groupRotationOrigin = obj->getOrigin() - groupCenter;	// Origem de rota��o da BB do grupo tem que estar ancorada na origem do objeto
-				glm::vec3 groupPosition = obj->getPosition() + groupCenter;		
+				glm::vec3 groupPosition = obj->getPosition() + groupCenter;
 
 				box->setOrigin(groupRotationOrigin);
 				box->setPosition(groupPosition);
@@ -397,35 +446,18 @@ void System::Run()
 				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(box->getTranslate()));
 				drawObj(box, GL_LINE_STRIP);
 			}
-			
-			
-			/* Teste de colisão entre a esfera e o objeto */
-			glm::vec3 P0 = objPmin * objScale + obj->getPosition();
-			glm::vec3 P1 = objPmax * objScale + obj->getPosition();
-
-			glm::vec3 VP = obj->getPosition() + objCenter - circle->getPosition();
-			glm::vec3 P = normalize(VP) * circleRadius + circle->getPosition();
-
-			bool afterMin = (P.x > P0.x && P.y > P0.y && P.z > P0.z);
-			bool beforeMax = (P.x < P1.x && P.y < P1.y && P.z < P1.z);
-			
-			collided = afterMin && beforeMax;
-
-			if (collided) {
-				cout << "collided" << endl;
-			} else {
-				cout << "didn't collide" << endl;
-			}
-
-			if (!collided) {
-				circle->setScale(glm::vec3(1.0f));
-				circle->setEulerAngles(glm::vec3(0.0f));
-				circle->setPosition(P);
-				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(circle->getTranslate()));
-				drawObj(circle, GL_LINE_STRIP);
-			}
-
+			glUniform1f(alphaLocation, 1.0f);
 		}
+		
+		/* Desenha esfera */
+		if (collidedWithAnyObject) glUniform1f(alphaLocation, 0.2f);
+		int numberOfCircles = 50;
+		for (int i = 0; i < numberOfCircles; i++) {
+			projectileCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
+			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(projectileCircle->getTranslate()));
+			drawObj(projectileCircle, GL_LINE_STRIP);
+		}
+		glUniform1f(alphaLocation, 1.0f);
 
 		glfwSwapBuffers(window);
 	}

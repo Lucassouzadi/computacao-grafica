@@ -8,7 +8,22 @@ Obj3D::Obj3D() {
 	this->origin = glm::vec3(0.0f);
 	this->eulerAngles = glm::vec3(0.0f);
 	this->scale = glm::vec3(1.0f);
+	this->direction = glm::vec3(0.0f);
 	this->computeTranslate();
+}
+
+Obj3D* Obj3D::copy() {
+	Obj3D* newObj = new Obj3D();
+	newObj->mesh = this->getMesh();
+	newObj->globalPMin = this->globalPMin;
+	newObj->globalPMax = this->globalPMax;
+	newObj->position = this->position;
+	newObj->origin = this->origin;
+	newObj->eulerAngles = this->eulerAngles;
+	newObj->scale = this->scale;
+	newObj->direction = this->direction;
+	newObj->computeTranslate();
+	return newObj;
 }
 
 void Obj3D::computeTranslate()

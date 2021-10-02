@@ -20,6 +20,7 @@ class Obj3D {
 		void Obj3D::computeTranslate();
 	public:
 		Obj3D();
+		Obj3D* copy();
 		void setOrigin(glm::vec3 origin);
 		void setPosition(glm::vec3 position);
 		void setEulerAngles(glm::vec3 eulerAngles);

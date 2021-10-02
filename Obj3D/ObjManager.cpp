@@ -89,6 +89,7 @@ Obj3D* ObjManager::readObj(string filename) {
 	}
 	mesh->addGroup(group);
 	obj->setMesh(mesh);
+	this->objToVAO(obj);
 	return obj;
 }
 
@@ -290,6 +291,7 @@ Obj3D* ObjManager::getHardcodedCube(GLfloat size) {
 	obj->setGlobalPMin(new glm::vec3(-size));
 	obj->setName("Cubo da massa");
 	obj->setMesh(mesh);
+	this->objToVAO(obj);
 	return obj;
 }
 
@@ -343,8 +345,8 @@ Obj3D* ObjManager::get2DCircle(GLfloat radius, int vertices) {
 	mesh->addGroup(circle);
 
 	Obj3D* obj = new Obj3D();
-	obj->setGlobalPMax(new glm::vec3(radius));
-	obj->setGlobalPMin(new glm::vec3(-radius));
+	obj->setGlobalPMax(new glm::vec3(abs(radius)));
+	obj->setGlobalPMin(new glm::vec3(-abs(radius)));
 	obj->setName("circulo");
 	obj->setMesh(mesh);
 	return obj;
