@@ -2,6 +2,7 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\type_ptr.hpp>
 #include <string>
+#include <GL/glew.h>
 
 #include "Face.h"
 
@@ -14,6 +15,8 @@ class Group {
 		unsigned int numVertices;
 		glm::vec3* pMin;
 		glm::vec3* pMax;
+		GLuint texture;
+
 	public:
 		Group();
 		void setName(string VAO);
@@ -23,6 +26,7 @@ class Group {
 		void setNumVertices(int numVertices);
 		void setPMin(glm::vec3* p);
 		void setPMax(glm::vec3* p);
+		void setTexture(GLuint texture);
 		string getName();
 		string getMaterial();
 		vector<Face*> getFaces();
@@ -30,4 +34,5 @@ class Group {
 		unsigned int getNumVertices();
 		glm::vec3* getPMin();
 		glm::vec3* getPMax();
+		GLuint getTexture();
 };

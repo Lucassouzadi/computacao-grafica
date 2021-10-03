@@ -49,6 +49,8 @@ public:
 
 	void Finish();
 
+	GLuint LoadTexture(char* filepath);
+	void RenderTexture(GLuint texture);
 };
 
 #endif
