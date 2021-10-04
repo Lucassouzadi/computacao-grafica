@@ -24,17 +24,20 @@
 #include "AssetManager.h"
 #include "Time.h"
 
+#include "Obj3D.h"
+
 class System
 {
 private:
 	// Screen
-	const GLint WIDTH = 800, HEIGHT = 600;
+	const GLint WIDTH = 1000, HEIGHT = 800;
 	int screenWidth, screenHeight;
 
 public:
 	GLFWwindow* window;
 	Shader coreShader;
-
+	Obj3D *auxCircle, *auxBox;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation;
 public:
 	System();
 	~System();
@@ -46,6 +49,8 @@ public:
 	void Run();
 
 	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
+
+	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting);
 
 	void Finish();
 

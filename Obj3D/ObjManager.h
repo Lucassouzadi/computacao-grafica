@@ -7,7 +7,7 @@
 class ObjManager {
 	public:
 		Obj3D* readObj(string fileName);
-		Obj3D* getHardcoded2DHouse();
 		Obj3D* getHardcodedCube(GLfloat size);
+		Obj3D* get2DCircle(GLfloat radius, int vertices);
 		void objToVAO(Obj3D* obj3D);
 };
