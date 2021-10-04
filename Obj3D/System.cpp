@@ -1,6 +1,5 @@
 #include "System.h"
 #include "ObjManager.h"
-constexpr auto PI = 3.14159265;
 
 using namespace std;
 
@@ -138,10 +137,10 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	pitch += yoffset;
 
 	// make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	if (pitch > 89.9f)
+		pitch = 89.9f;
+	if (pitch < -89.9f)
+		pitch = -89.9f;
 
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -150,10 +149,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
 	glm::vec3 cameraCenter = cameraPosition + glm::normalize(front);
 	cameraFront = glm::normalize(front);
-}
-
-float rads(float degrees) {
-	return degrees * PI / 180.0f;
 }
 
 float lenght(glm::vec3 vector) {
@@ -174,17 +169,19 @@ void drawObj(Obj3D* obj, GLenum mode) {
 }
 
 glm::vec3 rotatePoint(glm::vec3 point, glm::vec3 centerOfRotationCoords, glm::vec3 eulerAngles, bool reverse) {
-	glm::mat4 newTranslate, translateMatrix, rotationX, rotationY, rotationZ, rotationMatrix;
+	glm::mat4 newTranslate, translateMatrix, yaw, pitch, roll, rotationMatrix;
 
 	glm::vec3 centerOfRotation = centerOfRotationCoords - point;
 	translateMatrix = glm::translate(glm::mat4(1.0f), point + centerOfRotation);
 
-	rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	yaw = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	pitch = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	roll = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-	if (!reverse) rotationMatrix = rotationX * rotationY * rotationZ * glm::translate(glm::mat4(1.0f), -centerOfRotation);
-	else rotationMatrix = glm::transpose(rotationX * rotationY * rotationZ) * glm::translate(glm::mat4(1.0f), -centerOfRotation);
+	if (!reverse) 
+		rotationMatrix = yaw * pitch * roll * glm::translate(glm::mat4(1.0f), -centerOfRotation);
+	else 
+		rotationMatrix = glm::transpose(yaw * pitch * roll) * glm::translate(glm::mat4(1.0f), -centerOfRotation);
 
 	glm::vec3 rotatedPos = (translateMatrix * rotationMatrix)[3];
 	return rotatedPos;
@@ -200,32 +197,31 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 	glm::vec3 objScale = obj->getScale();
 	glm::vec3 objPmax = *obj->getGlobalPMax();
 	glm::vec3 objPmin = *obj->getGlobalPMin();
-	glm::vec3 objCenter = ((objPmax + objPmin) * objScale) / 2.0f;
-	glm::vec3 objCenterCoords = rotatePoint(objPosition + objCenter, objPosition + obj->getOrigin(), obj->getEulerAngles(), false);
-	glm::vec3 P0 = objPmin * objScale + objPosition;
-	glm::vec3 P1 = objPmax * objScale + objPosition;
+	glm::vec3 unrotatedP0 = objPmin * objScale + objPosition;
+	glm::vec3 unrotatedP1 = objPmax * objScale + objPosition;
 
-	/* Teste de colisão que presta */
-	glm::vec3 adjustedPos = rotatePoint(projectile->getPosition(), objPosition + obj->getOrigin(), obj->getEulerAngles(), true);
+	glm::vec3 projectileRotatedPos = rotatePoint(projectile->getPosition(), objPosition + obj->getOrigin(), obj->getEulerAngles(), true);
 
-	glm::vec3 collisionTestCoord = adjustedPos;
+	glm::vec3 collisionTestCoord = projectileRotatedPos;
 
-	if (collisionTestCoord.x < P0.x)		// left   
-		collisionTestCoord.x = P0.x;
-	else if (collisionTestCoord.x > P1.x)	// right
-		collisionTestCoord.x = P1.x;
+	if (collisionTestCoord.x < unrotatedP0.x)		// left   
+		collisionTestCoord.x = unrotatedP0.x;
+	else if (collisionTestCoord.x > unrotatedP1.x)	// right
+		collisionTestCoord.x = unrotatedP1.x;
 
-	if (collisionTestCoord.y < P0.y)        // top
-		collisionTestCoord.y = P0.y;
-	else if (collisionTestCoord.y > P1.y)	// bottom
-		collisionTestCoord.y = P1.y;
+	if (collisionTestCoord.y < unrotatedP0.y)        // top
+		collisionTestCoord.y = unrotatedP0.y;
+	else if (collisionTestCoord.y > unrotatedP1.y)	// bottom
+		collisionTestCoord.y = unrotatedP1.y;
 
-	if (collisionTestCoord.z < P0.z)		// back
-		collisionTestCoord.z = P0.z;
-	else if (collisionTestCoord.z > P1.z)	// front
-		collisionTestCoord.z = P1.z;
+	if (collisionTestCoord.z < unrotatedP0.z)		// back
+		collisionTestCoord.z = unrotatedP0.z;
+	else if (collisionTestCoord.z > unrotatedP1.z)	// front
+		collisionTestCoord.z = unrotatedP1.z;
 
-	glm::vec3 collisionDistanceVector = projectile->getPosition() - collisionTestCoord;
+	
+	//glm::vec3 collisionDistanceVector = projectile->getPosition() - rotatedCollisionTestCoord;
+	glm::vec3 collisionDistanceVector = projectileRotatedPos - collisionTestCoord;
 	float distance = lenght(collisionDistanceVector);
 
 	bool collidedWithCurrentObject = distance <= getBoundingSphereRadius(projectile);
@@ -233,21 +229,44 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 	if (visilizeCollisionTesting){	
 		if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
 
-		/* Desenha centro do Objeto */
+		/* Desenha centro do Objeto (rotacionado) */
+		glm::vec3 objCenter = ((objPmax + objPmin) * objScale) / 2.0f;
+		glm::vec3 objCenterCoords = rotatePoint(objPosition + objCenter, objPosition + obj->getOrigin(), obj->getEulerAngles(), false);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), objCenterCoords)));
 		drawObj(auxCircle, GL_LINE_STRIP);
 
-		/* Desenha ponto de teste de colisão */
-		collisionTestCoord = rotatePoint(collisionTestCoord, obj->getOrigin() + objPosition, obj->getEulerAngles(), false);
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), collisionTestCoord)));
+		/* Desenha ponto de teste de colisão rotacionado */
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), collisionTestCoord)));
+		//drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Desenha ponto de teste de colisão corrigido */
+		glm::vec3 rotatedCollisionTestCoord = rotatePoint(collisionTestCoord, obj->getOrigin() + objPosition, obj->getEulerAngles(), false);
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), rotatedCollisionTestCoord)));
 		drawObj(auxCircle, GL_LINE_STRIP);
 
-		/* Desenha bounding box global do objeto */
+		/* Desenha centro do projetil */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), projectile->getPosition())));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Desenha centro do projetil rotacionado em relação ao obj */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), projectileRotatedPos)));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Raio */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), glm::vec3(projectile->getPosition().x + getBoundingSphereRadius(projectile), projectile->getPosition().y, projectile->getPosition().z))));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Desenha bounding box global do objeto (rotacionada) */
 		glm::vec3 boundingBoxDimensions = (objPmax - objPmin) * obj->getScale();
 		auxBox->setOrigin(obj->getOrigin() - objCenter);		// Origem de rota��o da BB tem que ser o centro do objeto
 		auxBox->setPosition(obj->getPosition() + objCenter);	// Como (0, 0, 0) est� no centro da BB, precisa somar o centro do objeto
 		auxBox->setEulerAngles(obj->getEulerAngles());
 		auxBox->setScale(boundingBoxDimensions);
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
+		drawObj(auxBox, GL_LINE_STRIP);
+
+		/* Desenha bounding box global do objeto (sem rotação) */
+		auxBox->setEulerAngles(glm::vec3(0.0f));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
 		drawObj(auxBox, GL_LINE_STRIP);
 
@@ -281,8 +300,8 @@ void System::Run()
 	/* Setup da cena */
 	float objSpeed = 2.5f;
 	float worldSize = 60.0f;
-	float ang1 = rads(48.0f);
-	float ang2 = rads(15.0f);
+	float ang1 = glm::radians(48.0f);
+	float ang2 = glm::radians(15.0f);
 
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
@@ -314,7 +333,7 @@ void System::Run()
 
 	Obj3D* toonLink2 = toonLink1->copy();
 	toonLink2->setName("ToonLink2");
-	objs.push_back(toonLink2);
+	//objs.push_back(toonLink2);
 
 	//Obj3D* toonLink3 = toonLink1->copy();
 	//toonLink3->setName("ToonLink3");
@@ -326,7 +345,7 @@ void System::Run()
 	libertyStatue->setScale(glm::vec3(18.0f));
 	libertyStatue->setCollision(false);
 	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
-	objs.push_back(libertyStatue);
+	//objs.push_back(libertyStatue);
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
@@ -377,12 +396,12 @@ void System::Run()
 		float angle = currentSeconds / 4;
 		glm::vec3 toonlinkCenter = toonLink1->getScale() * (*toonLink1->getGlobalPMax() + *toonLink1->getGlobalPMin()) / 2.0f;
 		toonlinkCenter += cos(currentSeconds) * 10.0f;
-		objs[0]->setPosition(glm::vec3(35.0f * cos(angle), -toonlinkCenter.y, 30.0f * sin(angle)));
-		objs[1]->setPosition(glm::vec3(40.0f * cos(90 + angle), 40 * sin(90 + angle), -toonlinkCenter.z));
-		objs[2]->setPosition(glm::vec3(-toonlinkCenter.x, 25.0f * cos(90 + angle), 25.0f * sin(90 + angle)));
-		objs[0]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
-		objs[1]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
-		objs[2]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
+		toonLink1->setPosition(glm::vec3(35.0f * cos(angle), -toonlinkCenter.y, 30.0f * sin(angle)));
+		toonLink2->setPosition(glm::vec3(40.0f * cos(90 + angle), 40 * sin(90 + angle), -toonlinkCenter.z));
+		libertyStatue->setPosition(glm::vec3(-toonlinkCenter.x, 25.0f * cos(90 + angle), 25.0f * sin(90 + angle)));
+		toonLink1->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
+		toonLink2->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
+		libertyStatue->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
 
 		projectile->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 
@@ -418,7 +437,8 @@ void System::Run()
 		drawObj(projectile, GL_LINE_STRIP);
 
 		/* Desenha bounding sphere do projétil */
-		int numberOfCircles = 20;
+		glUniform1f(alphaLocation, 0.4f);
+		int numberOfCircles = 10;
 		for (int i = 0; i < numberOfCircles; i++) {
 			auxCircle->setScale(glm::vec3(getBoundingSphereRadius(projectile) * 2.0f));
 			auxCircle->setPosition(projectile->getPosition());
