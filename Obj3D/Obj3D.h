@@ -17,6 +17,7 @@ class Obj3D {
 		glm::vec3* globalPMin;
 		glm::vec3* globalPMax;
 		string name;
+		GLuint texture;
 		void Obj3D::computeTranslate();
 	public:
 		Obj3D();
@@ -42,4 +43,6 @@ class Obj3D {
 		string getName();
 		glm::vec3* getGlobalPMin();
 		glm::vec3* getGlobalPMax();
+		void loadTexture(char* filepath);
+		void renderTexture(GLuint program);
 };

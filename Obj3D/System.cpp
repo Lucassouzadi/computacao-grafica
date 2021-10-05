@@ -241,10 +241,12 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 
 		/* Desenha centro do Objeto */
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), objCenterCoords)));
+		auxCircle->renderTexture(coreShader.program);
 		drawObj(auxCircle, GL_LINE_STRIP);
 
 		/* Desenha ponto de teste de colisão */
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), collisionTestCoord)));
+		auxCircle->renderTexture(coreShader.program);
 		drawObj(auxCircle, GL_LINE_STRIP);
 
 		/* Desenha bounding box global do objeto */
@@ -254,6 +256,7 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 		auxBox->setEulerAngles(obj->getEulerAngles());
 		auxBox->setScale(boundingBoxDimensions);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
+		auxBox->renderTexture(coreShader.program);
 		drawObj(auxBox, GL_LINE_STRIP);
 
 		/* Desenha bounding boxes de cada um dos grupos do objeto */
@@ -271,6 +274,7 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 			auxBox->setEulerAngles(obj->getEulerAngles());
 			auxBox->setScale(boundingBoxDimensions);
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
+			auxBox->renderTexture(coreShader.program);
 			drawObj(auxBox, GL_LINE_STRIP);
 		}
 
@@ -315,6 +319,7 @@ void System::Run()
 	Obj3D* toonLink1 = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
 	toonLink1->setName("ToonLink1");
 	toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
+	toonLink1->loadTexture("images/woodTexture.jpg");
 	objs.push_back(toonLink1);
 
 	Obj3D* toonLink2 = toonLink1->copy();
@@ -327,6 +332,7 @@ void System::Run()
 
 	Obj3D* libertyStatue = objManager->readObj("../objs/target.obj");
 	libertyStatue->setName("target");
+	libertyStatue->loadTexture("images/target_texture.jpg");
 	libertyStatue->setEulerAngles(glm::vec3(16.0f, 0.0f, -16.0f));
 	libertyStatue->setScale(glm::vec3(0.2f));
 	libertyStatue->setCollision(false);
@@ -352,8 +358,6 @@ void System::Run()
 
 	bool collidedWithAnyObjectThisFrame = false;
 
-	GLuint texture = LoadTexture("images/target_texture.jpg");
-
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
@@ -376,6 +380,7 @@ void System::Run()
 
 		/* Desenha caixa do mundo */
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldBox->getTranslate()));
+		worldBox->renderTexture(coreShader.program);
 		drawObj(worldBox, GL_LINE_STRIP);
 
 		/* Move objetos da cena */
@@ -391,11 +396,8 @@ void System::Run()
 
 		projectile->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 
-
 		glUniform1f(alphaLocation, 1.0f);
 		collidedWithAnyObjectThisFrame = false;
-
-		RenderTexture(texture);
 
 		for (Obj3D* obj : objs) {
 
@@ -417,6 +419,7 @@ void System::Run()
 			/* Desenha objeto */
 			if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
+			obj->renderTexture(coreShader.program);
 			drawObj(obj, GL_TRIANGLES);
 			glUniform1f(alphaLocation, 1.0f);
 		}
@@ -425,6 +428,7 @@ void System::Run()
 		/* Desenha projétil */
 		if (collidedWithAnyObjectThisFrame) glUniform1f(alphaLocation, 0.2f);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(projectile->getTranslate()));
+		projectile->renderTexture(coreShader.program);
 		drawObj(projectile, GL_LINE_STRIP);
 
 		/* Desenha bounding sphere do projétil */
@@ -434,7 +438,7 @@ void System::Run()
 			auxCircle->setPosition(projectile->getPosition());
 			auxCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxCircle->getTranslate()));
-			RenderTexture(texture);
+			auxCircle->renderTexture(coreShader.program);
 			drawObj(auxCircle, GL_LINE_STRIP);
 		}
 		glUniform1f(alphaLocation, 1.0f);
@@ -442,40 +446,6 @@ void System::Run()
 		glfwSwapBuffers(window);
 	}
 
-}
-
-GLuint System::LoadTexture(char* filepath) {
-	GLuint texture;
-
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	int width, height;
-	unsigned char* image = SOIL_load_image(filepath, &width, &height, 0, SOIL_LOAD_RGBA);
-
-	if (image) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		printf("Failed to load texture: %s", filepath);
-	}
-	SOIL_free_image_data(image);
-
-	return texture;
-}
-
-void System::RenderTexture(GLuint texture) {
-	// bind Texture
-	int textureLocation = glGetUniformLocation(coreShader.program, "texture1");
-	glUniform1i(textureLocation, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 void System::Finish() {

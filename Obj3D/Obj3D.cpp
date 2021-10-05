@@ -1,5 +1,6 @@
 #include "Obj3D.h"
 #include <glm\gtc\matrix_transform.hpp>
+#include <SOIL.h>
 
 Obj3D::Obj3D() {
 	this->globalPMin = new glm::vec3(numeric_limits<float>::max());
@@ -22,6 +23,7 @@ Obj3D* Obj3D::copy() {
 	newObj->eulerAngles = this->eulerAngles;
 	newObj->scale = this->scale;
 	newObj->direction = this->direction;
+	newObj->texture = this->texture;
 	newObj->computeTranslate();
 	return newObj;
 }
@@ -79,6 +81,36 @@ void Obj3D::setDirection(glm::vec3 direction)
 void Obj3D::setName(string name)
 {
 	this->name = name;
+}
+
+void Obj3D::loadTexture(char* filepath)
+{
+	glGenTextures(1, &this->texture);
+	glBindTexture(GL_TEXTURE_2D, this->texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	int width, height;
+	unsigned char* image = SOIL_load_image(filepath, &width, &height, 0, SOIL_LOAD_RGBA);
+
+	if (image) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		printf("Failed to load texture: %s", filepath);
+	}
+	SOIL_free_image_data(image);
+}
+
+void Obj3D::renderTexture(GLuint program) {
+	int textureLocation = glGetUniformLocation(program, "texture1");
+	glUniform1i(textureLocation, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 void Obj3D::setMesh(Mesh* mesh)
