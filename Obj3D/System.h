@@ -50,7 +50,7 @@ public:
 
 	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
 
-	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting);
+	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting, glm::vec3 *reflectionNormal);
 
 	void Finish();
 
