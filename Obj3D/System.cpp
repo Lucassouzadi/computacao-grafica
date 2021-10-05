@@ -332,7 +332,7 @@ void System::Run()
 
 	Obj3D* libertyStatue = objManager->readObj("../objs/target.obj");
 	libertyStatue->setName("target");
-	libertyStatue->loadTexture("images/target_texture.jpg");
+	libertyStatue->loadTexture("images/woodTexture.jpg");
 	libertyStatue->setEulerAngles(glm::vec3(16.0f, 0.0f, -16.0f));
 	libertyStatue->setScale(glm::vec3(0.2f));
 	libertyStatue->setCollision(false);

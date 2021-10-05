@@ -107,10 +107,11 @@ void Obj3D::loadTexture(char* filepath)
 }
 
 void Obj3D::renderTexture(GLuint program) {
+	glUniform1i(glGetUniformLocation(program, "hasTexture"), this->texture != 0);
 	int textureLocation = glGetUniformLocation(program, "texture1");
 	glUniform1i(textureLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, this->texture);
 }
 
 void Obj3D::setMesh(Mesh* mesh)
