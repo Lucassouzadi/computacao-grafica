@@ -16,5 +16,5 @@ void main()
 {
 	color = (vNormal+1.0)*(vNormal+1.0)/4.0;
 	gl_Position = projection * view * model * vec4(vPosition, 1.0);
-	TexCoord = vec2(vTexture.x, vTexture.y);
+	TexCoord = vec2(vTexture.x, 1.0 - vTexture.y);
 }

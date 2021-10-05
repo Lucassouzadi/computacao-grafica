@@ -325,10 +325,10 @@ void System::Run()
 	//toonLink3->setName("ToonLink3");
 	//objs.push_back(toonLink3);
 
-	Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
-	libertyStatue->setName("LibertStatue");
+	Obj3D* libertyStatue = objManager->readObj("../objs/target.obj");
+	libertyStatue->setName("target");
 	libertyStatue->setEulerAngles(glm::vec3(16.0f, 0.0f, -16.0f));
-	libertyStatue->setScale(glm::vec3(18.0f));
+	libertyStatue->setScale(glm::vec3(0.2f));
 	libertyStatue->setCollision(false);
 	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
 	objs.push_back(libertyStatue);
@@ -352,7 +352,7 @@ void System::Run()
 
 	bool collidedWithAnyObjectThisFrame = false;
 
-	GLuint texture = LoadTexture("images/woodTexture.jpg");
+	GLuint texture = LoadTexture("images/target_texture.jpg");
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();

@@ -13,6 +13,7 @@ Obj3D* ObjManager::readObj(string filename) {
 		getline(arq, line);
 		stringstream sline;
 		sline << line;
+		cout << line << endl;
 		string lineType;
 		sline >> lineType;
 		if (lineType == "" || lineType[0] == '#') continue;
