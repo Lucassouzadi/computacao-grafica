@@ -30,14 +30,14 @@ Obj3D* Obj3D::copy() {
 
 void Obj3D::computeTranslate()
 {
-	glm::mat4 newTranslate, translateMatrix, rotationX, rotationY, rotationZ, rotationMatrix, scaleMatrix;
+	glm::mat4 newTranslate, translateMatrix, yaw, pitch, roll, rotationMatrix, scaleMatrix;
 	
 	translateMatrix = glm::translate(glm::mat4(1.0f), this->position + this->origin);
 
-	rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	rotationMatrix = rotationX * rotationY * rotationZ * glm::translate(glm::mat4(1.0f), -this->origin);
+	yaw = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	pitch = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	roll = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	rotationMatrix = yaw * pitch * roll * glm::translate(glm::mat4(1.0f), -this->origin);
 
 	scaleMatrix = glm::scale(glm::mat4(1.0f), this->scale);
 
@@ -106,14 +106,6 @@ void Obj3D::loadTexture(char* filepath)
 	SOIL_free_image_data(image);
 }
 
-void Obj3D::renderTexture(GLuint program) {
-	glUniform1i(glGetUniformLocation(program, "hasTexture"), this->texture != 0);
-	int textureLocation = glGetUniformLocation(program, "texture1");
-	glUniform1i(textureLocation, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, this->texture);
-}
-
 void Obj3D::setMesh(Mesh* mesh)
 {
 	this->mesh = mesh;
@@ -177,4 +169,8 @@ glm::vec3* Obj3D::getGlobalPMin() {
 
 glm::vec3* Obj3D::getGlobalPMax() {
 	return globalPMax;
+}
+
+GLuint Obj3D::getTexture() {
+	return texture;
 }

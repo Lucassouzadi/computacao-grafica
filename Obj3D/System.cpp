@@ -1,19 +1,20 @@
 #include "System.h"
 #include "ObjManager.h"
-constexpr auto PI = 3.14159265;
 
 using namespace std;
 
-glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 50.0f);
+Obj3D* projectile;
+
+glm::vec3 cameraPosition = glm::vec3(0.0f, 20.0f, 50.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-float cameraSpeed = 20.0f;
+float cameraSpeed = 38.0f;
 
 //mouse configs
 bool firstMouse = true;
-float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
+float cameraXZAngle = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float cameraXYAngle = 0.0f;
 float lastX;
 float lastY;
 float fov = 45.0f;
@@ -29,6 +30,15 @@ glm::vec3 reflexao(glm::vec3 direcao, glm::vec3 normal) {
 	float a = dot(normal, direcaoContraria);
 	glm::vec3 novaDirecao = glm::vec3(2 * normal.x * a - direcaoContraria.x, 2 * normal.y * a - direcaoContraria.y, 2 * normal.z * a - direcaoContraria.z);
 	return novaDirecao;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		cout << "mouse right click" << endl;
+		projectile->setPosition(cameraPosition);
+		projectile->setDirection(cameraFront);
+		projectile->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
+	}
 }
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos)
@@ -48,19 +58,19 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	xoffset *= mouseSensitivity;
 	yoffset *= mouseSensitivity;
 
-	yaw += xoffset;
-	pitch += yoffset;
+	cameraXZAngle += xoffset;
+	cameraXYAngle += yoffset;
 
 	// make sure that when pitch is out of bounds, screen doesn't get flipped
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
+	if (cameraXYAngle > 89.9f)
+		cameraXYAngle = 89.9f;
+	if (cameraXYAngle < -89.9f)
+		cameraXYAngle = -89.9f;
 
 	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.x = cos(glm::radians(cameraXZAngle)) * cos(glm::radians(cameraXYAngle));
+	front.y = sin(glm::radians(cameraXYAngle));
+	front.z = sin(glm::radians(cameraXZAngle)) * cos(glm::radians(cameraXYAngle));
 
 	glm::vec3 cameraCenter = cameraPosition + glm::normalize(front);
 	cameraFront = glm::normalize(front);
@@ -96,10 +106,9 @@ int System::GLFWInit() {
 	}
 
 	glfwMakeContextCurrent(window);
-
-	glfwSetCursorPosCallback(window, mouseCallback);
-
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	glewExperimental = GL_TRUE;
 
@@ -137,6 +146,8 @@ int System::SystemSetup()
 	modelLocation = glGetUniformLocation(coreShader.program, "model");
 	projectionLocation = glGetUniformLocation(coreShader.program, "projection");
 	viewLocation = glGetUniformLocation(coreShader.program, "view");
+	textureLocation = glGetUniformLocation(coreShader.program, "texture1");
+	hasTextureLocation = glGetUniformLocation(coreShader.program, "hasTexture");
 
 	return EXIT_SUCCESS;
 }
@@ -146,18 +157,16 @@ void System::ProcessInput(GLFWwindow* window, float elapsedSeconds)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPosition += cameraSpeed * elapsedSeconds * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPosition -= cameraSpeed * elapsedSeconds * cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPosition -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed * elapsedSeconds;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPosition += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed * elapsedSeconds;
-}
+	glm::vec3 cameraFrontOnThefloor = glm::normalize(glm::vec3(cameraFront.x, 0.0, cameraFront.z));
 
-float rads(float degrees) {
-	return degrees * PI / 180.0f;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPosition += cameraSpeed * elapsedSeconds * cameraFrontOnThefloor;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPosition -= cameraSpeed * elapsedSeconds * cameraFrontOnThefloor;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPosition -= glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp)) * cameraSpeed * elapsedSeconds;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPosition += glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp)) * cameraSpeed * elapsedSeconds;
 }
 
 float lenght(glm::vec3 vector) {
@@ -169,7 +178,9 @@ glm::vec3 normalize(glm::vec3 vector) {
 	return vector / vectorLength;
 }
 
-void drawObj(Obj3D* obj, GLenum mode) {
+void System::drawObj(Obj3D* obj, GLenum mode, GLenum frontFace = GL_CCW) {
+	glFrontFace(frontFace);
+	bindTexture(obj->getTexture());
 	for (Group* group : obj->getMesh()->getGroups()) {
 		glBindVertexArray(group->getVAO());
 		glDrawArrays(mode, 0, group->getNumVertices());
@@ -177,18 +188,27 @@ void drawObj(Obj3D* obj, GLenum mode) {
 	glBindVertexArray(0);
 }
 
-glm::vec3 rotatePoint(glm::vec3 point, glm::vec3 centerOfRotationCoords, glm::vec3 eulerAngles, bool reverse) {
-	glm::mat4 newTranslate, translateMatrix, rotationX, rotationY, rotationZ, rotationMatrix;
+void System::bindTexture(GLuint texture) {
+	glUniform1i(hasTextureLocation, texture != 0);
+	glUniform1i(textureLocation, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+}
+
+glm::vec3 rotatePoint(glm::vec3 point, glm::vec3 centerOfRotationCoords, glm::vec3 eulerAngles, bool reverse = false) {
+	glm::mat4 newTranslate, translateMatrix, yaw, pitch, roll, rotationMatrix;
 
 	glm::vec3 centerOfRotation = centerOfRotationCoords - point;
 	translateMatrix = glm::translate(glm::mat4(1.0f), point + centerOfRotation);
 
-	rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	yaw = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	pitch = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	roll = glm::rotate(glm::mat4(1.0f), glm::radians(eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-	if (!reverse) rotationMatrix = rotationX * rotationY * rotationZ * glm::translate(glm::mat4(1.0f), -centerOfRotation);
-	else rotationMatrix = glm::transpose(rotationX * rotationY * rotationZ) * glm::translate(glm::mat4(1.0f), -centerOfRotation);
+	if (!reverse)
+		rotationMatrix = yaw * pitch * roll * glm::translate(glm::mat4(1.0f), -centerOfRotation);
+	else
+		rotationMatrix = glm::transpose(yaw * pitch * roll) * glm::translate(glm::mat4(1.0f), -centerOfRotation);
 
 	glm::vec3 rotatedPos = (translateMatrix * rotationMatrix)[3];
 	return rotatedPos;
@@ -198,145 +218,210 @@ float getBoundingSphereRadius(Obj3D* obj) {
 	return length((*obj->getGlobalPMax() - *obj->getGlobalPMin()) * obj->getScale()) / 2.0f;
 }
 
-bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visilizeCollisionTesting) {
+bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visilizeCollisionTesting, glm::vec3* reflectionNormal) {
+
+	float projectileRadius = getBoundingSphereRadius(projectile);
 
 	glm::vec3 objPosition = obj->getPosition();
 	glm::vec3 objScale = obj->getScale();
-	glm::vec3 objPmax = *obj->getGlobalPMax();
-	glm::vec3 objPmin = *obj->getGlobalPMin();
-	glm::vec3 objCenter = ((objPmax + objPmin) * objScale) / 2.0f;
-	glm::vec3 objCenterCoords = rotatePoint(objPosition + objCenter, objPosition + obj->getOrigin(), obj->getEulerAngles(), false);
-	glm::vec3 P0 = objPmin * objScale + objPosition;
-	glm::vec3 P1 = objPmax * objScale + objPosition;
+	glm::vec3 unrotatedP0Coords = *obj->getGlobalPMin() * objScale + objPosition;
+	glm::vec3 unrotatedP1Coords = *obj->getGlobalPMax() * objScale + objPosition;
+	glm::vec3 objCenter = ((*obj->getGlobalPMin() + *obj->getGlobalPMax()) * objScale) / 2.0f;
 
-	/* Teste de colisão que presta */
-	glm::vec3 adjustedPos = rotatePoint(projectile->getPosition(), objPosition + obj->getOrigin(), obj->getEulerAngles(), true);
+	glm::vec3 projectileRotatedPos = rotatePoint(projectile->getPosition(), objPosition + obj->getOrigin(), obj->getEulerAngles(), true);
 
-	glm::vec3 collisionTestCoord = adjustedPos;
+	glm::vec3 collisionTestCoord = projectileRotatedPos;
 
-	if (collisionTestCoord.x < P0.x)		// left   
-		collisionTestCoord.x = P0.x;
-	else if (collisionTestCoord.x > P1.x)	// right
-		collisionTestCoord.x = P1.x;
+	if (collisionTestCoord.x < unrotatedP0Coords.x) {			// left   
+		collisionTestCoord.x = unrotatedP0Coords.x;
+	} else if (collisionTestCoord.x > unrotatedP1Coords.x) {	// right
+		collisionTestCoord.x = unrotatedP1Coords.x;
+	}
 
-	if (collisionTestCoord.y < P0.y)        // top
-		collisionTestCoord.y = P0.y;
-	else if (collisionTestCoord.y > P1.y)	// bottom
-		collisionTestCoord.y = P1.y;
+	if (collisionTestCoord.y < unrotatedP0Coords.y) {			// bottom 
+		collisionTestCoord.y = unrotatedP0Coords.y;
+	} else if (collisionTestCoord.y > unrotatedP1Coords.y) {	// top
+		collisionTestCoord.y = unrotatedP1Coords.y;
+	}
 
-	if (collisionTestCoord.z < P0.z)		// back
-		collisionTestCoord.z = P0.z;
-	else if (collisionTestCoord.z > P1.z)	// front
-		collisionTestCoord.z = P1.z;
+	if (collisionTestCoord.z < unrotatedP0Coords.z) {			// back
+		collisionTestCoord.z = unrotatedP0Coords.z;
+	} else if (collisionTestCoord.z > unrotatedP1Coords.z) {	// front
+		collisionTestCoord.z = unrotatedP1Coords.z;
+	}
 
-	collisionTestCoord = rotatePoint(collisionTestCoord, obj->getOrigin() + objPosition, obj->getEulerAngles(), false);
-
-	glm::vec3 collisionDistanceVector = projectile->getPosition() - collisionTestCoord;
+	glm::vec3 collisionDistanceVector = projectileRotatedPos - collisionTestCoord;
 	float distance = lenght(collisionDistanceVector);
 
-	bool collidedWithCurrentObject = distance <= getBoundingSphereRadius(projectile);
+	bool collidedWithGlobalBoundingBox = distance <= projectileRadius;
 
-	if (visilizeCollisionTesting){	
-		if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
+	if (visilizeCollisionTesting) {
+		if (collidedWithGlobalBoundingBox) glUniform1f(alphaLocation, 0.2f);
 
-		/* Desenha centro do Objeto */
+		/* Desenha centro do Objeto (rotacionado) */
+		glm::vec3 objCenterCoords = rotatePoint(objPosition + objCenter, objPosition + obj->getOrigin(), obj->getEulerAngles());
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), objCenterCoords)));
-		auxCircle->renderTexture(coreShader.program);
 		drawObj(auxCircle, GL_LINE_STRIP);
 
-		/* Desenha ponto de teste de colisão */
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), collisionTestCoord)));
-		auxCircle->renderTexture(coreShader.program);
+		/* Desenha ponto de teste de colisão corrigido */
+		glm::vec3 rotatedCollisionTestCoord = rotatePoint(collisionTestCoord, obj->getOrigin() + objPosition, obj->getEulerAngles());
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), rotatedCollisionTestCoord)));
 		drawObj(auxCircle, GL_LINE_STRIP);
 
-		/* Desenha bounding box global do objeto */
-		glm::vec3 boundingBoxDimensions = (objPmax - objPmin) * obj->getScale();
+		/* Desenha centro do projetil */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), projectile->getPosition())));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Desenha centro do projetil rotacionado em relação ao obj */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), projectileRotatedPos)));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Raio */
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), glm::vec3(projectile->getPosition() + glm::vec3(projectileRadius, 0.0f, 0.0f)))));
+		//drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Normal de reflexão (com rotação) */
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), objPosition + objCenter + *reflectionNormal * getBoundingSphereRadius(obj))));
+		drawObj(auxCircle, GL_LINE_STRIP);
+
+		/* Desenha bounding box global do objeto (rotacionada) */
+		glm::vec3 boundingBoxDimensions = unrotatedP0Coords - unrotatedP1Coords;
 		auxBox->setOrigin(obj->getOrigin() - objCenter);		// Origem de rota��o da BB tem que ser o centro do objeto
 		auxBox->setPosition(obj->getPosition() + objCenter);	// Como (0, 0, 0) est� no centro da BB, precisa somar o centro do objeto
 		auxBox->setEulerAngles(obj->getEulerAngles());
 		auxBox->setScale(boundingBoxDimensions);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
-		auxBox->renderTexture(coreShader.program);
 		drawObj(auxBox, GL_LINE_STRIP);
 
-		/* Desenha bounding boxes de cada um dos grupos do objeto */
-		for (Group* group : obj->getMesh()->getGroups()) {
-			glm::vec3 groupPmax = *group->getPMax();
-			glm::vec3 groupPmin = *group->getPMin();
-			glm::vec3 boundingBoxDimensions = (groupPmax - groupPmin) * objScale;
-			glm::vec3 groupCenter = ((groupPmax + groupPmin) * objScale) / 2.0f;
-
-			glm::vec3 groupRotationOrigin = obj->getOrigin() - groupCenter;	// Origem de rota��o da BB do grupo tem que estar ancorada na origem do objeto
-			glm::vec3 groupPosition = obj->getPosition() + groupCenter;
-
-			auxBox->setOrigin(groupRotationOrigin);
-			auxBox->setPosition(groupPosition);
-			auxBox->setEulerAngles(obj->getEulerAngles());
-			auxBox->setScale(boundingBoxDimensions);
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
-			auxBox->renderTexture(coreShader.program);
-			drawObj(auxBox, GL_LINE_STRIP);
-		}
+		/* Desenha bounding box global do objeto (sem rotação) */
+		//auxBox->setEulerAngles(glm::vec3(0.0f));
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
+		//drawObj(auxBox, GL_LINE_STRIP);
 
 		glUniform1f(alphaLocation, 1.0f);
 	}
 
-	return collidedWithCurrentObject;
+	/* Se houve colisão com BB global, testa colisão com cada um dos grupos */
+	bool coollidedWithAnyGroup = false;
+	if (collidedWithGlobalBoundingBox) {
+		for (int groupIndex = 0; !coollidedWithAnyGroup && groupIndex < obj->getMesh()->getGroups().size(); groupIndex++) {
+			Group* group = obj->getMesh()->getGroups()[groupIndex];
+
+			glm::vec3 groupP0UnrotatedCoords = *group->getPMin() * objScale + objPosition;
+			glm::vec3 groupP1UnrotatedCoords = *group->getPMax() * objScale + objPosition;
+
+			glm::vec3 groupCollisionTestCoord = projectileRotatedPos;
+
+			*reflectionNormal = glm::vec3(0.0f);
+
+			if (groupCollisionTestCoord.x < groupP0UnrotatedCoords.x) {			// left   
+				groupCollisionTestCoord.x = groupP0UnrotatedCoords.x;
+				reflectionNormal->x -= 1.0f;
+			} else if (groupCollisionTestCoord.x > groupP1UnrotatedCoords.x) {	// right
+				groupCollisionTestCoord.x = groupP1UnrotatedCoords.x;
+				reflectionNormal->x += 1.0f;
+			}
+
+			if (groupCollisionTestCoord.y < groupP0UnrotatedCoords.y) {			// bottom 
+				groupCollisionTestCoord.y = groupP0UnrotatedCoords.y;
+				reflectionNormal->y -= 1.0f;
+			} else if (groupCollisionTestCoord.y > groupP1UnrotatedCoords.y) {	// top
+				groupCollisionTestCoord.y = groupP1UnrotatedCoords.y;
+				reflectionNormal->y += 1.0f;
+			}
+
+			if (groupCollisionTestCoord.z < groupP0UnrotatedCoords.z) {			// back
+				groupCollisionTestCoord.z = groupP0UnrotatedCoords.z;
+				reflectionNormal->z -= 1.0f;
+			} else if (groupCollisionTestCoord.z > groupP1UnrotatedCoords.z) {	// front
+				groupCollisionTestCoord.z = groupP1UnrotatedCoords.z;
+				reflectionNormal->z += 1.0f;
+			}
+
+			glm::vec3 collisionDistanceVector = projectileRotatedPos - groupCollisionTestCoord;
+			float distance = lenght(collisionDistanceVector);
+
+			coollidedWithAnyGroup = distance <= projectileRadius;
+
+			if (visilizeCollisionTesting) {
+				/* Desenha bounding boxes do grupo */
+				glm::vec3 boundingBoxDimensions = (groupP0UnrotatedCoords - groupP1UnrotatedCoords);
+				glm::vec3 groupCenter = ((*group->getPMin() + *group->getPMax()) * objScale) / 2.0f;
+				glm::vec3 groupPosition = obj->getPosition() + groupCenter;
+				glm::vec3 groupRotationOrigin = obj->getOrigin() - groupCenter;	// Origem de rota��o da BB do grupo tem que estar ancorada na origem do objeto
+				auxBox->setOrigin(groupRotationOrigin);
+				auxBox->setPosition(groupPosition);
+				auxBox->setEulerAngles(obj->getEulerAngles());
+				auxBox->setScale(boundingBoxDimensions);
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxBox->getTranslate()));
+				drawObj(auxBox, GL_LINE_STRIP);
+
+				/* Desenha centro do grupo (rotacionado) */
+				glm::vec3 groupCenterCoords = rotatePoint(groupCenter + objPosition, obj->getOrigin() + objPosition, obj->getEulerAngles());
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), groupCenterCoords)));
+				drawObj(auxCircle, GL_LINE_STRIP);
+
+				/* Desenha P0 do grupo (rotacionado) */
+				glm::vec3 rotatedGroupP0 = rotatePoint(groupP0UnrotatedCoords, obj->getOrigin() + objPosition, obj->getEulerAngles());
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), rotatedGroupP0)));
+				drawObj(auxCircle, GL_LINE_STRIP);
+
+				/* Desenha P1 do grupo (rotacionado) */
+				glm::vec3 rotatedGroupP1 = rotatePoint(groupP1UnrotatedCoords, obj->getOrigin() + objPosition, obj->getEulerAngles());
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), rotatedGroupP1)));
+				drawObj(auxCircle, GL_LINE_STRIP);
+
+				/* Desenha ponto de teste de colisão corrigido */
+				glm::vec3 rotatedCollisionTestCoord = rotatePoint(groupCollisionTestCoord, obj->getOrigin() + objPosition, obj->getEulerAngles());
+				glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(glm::translate(glm::mat4(1.0f), rotatedCollisionTestCoord)));
+				drawObj(auxCircle, GL_LINE_STRIP);
+			}
+		}
+	}
+
+	*reflectionNormal = glm::normalize(*reflectionNormal);
+	*reflectionNormal = rotatePoint(*reflectionNormal, glm::vec3(0.0f), obj->getEulerAngles());
+
+	return coollidedWithAnyGroup;
 }
 
 
-void System::Run()
-{
+void System::Run() {
 	/* Setup da cena */
-	float objSpeed = 2.5f;
-	float worldSize = 60.0f;
-	float ang1 = rads(48.0f);
-	float ang2 = rads(15.0f);
+	float objSpeed = 10.5f;
+	float worldSize = 100.0f;
 
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
 	ObjManager* objManager = new ObjManager();
 
-	//Obj3D* table1 = objManager->readObj("objs/mesa01.obj");
-	//table1->setName("table1");
-	//table1->setScale(glm::vec3(0.6f));
-	//table1->setPosition(glm::vec3(10.0f));
-	//table1->setCollision(false);
-	//table1->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXZ))));
-
-	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
-	//table2->setName("table2");
-	//table1->setScale(glm::vec3(0.3f));
-	//table2->setCollision(false);
-	//table2->setDirection(glm::normalize(glm::vec3(cos(radsXZ), sin(radsXZ), sin(radsXY))));
-
-	//Obj3D* paintballField = objManager->readObj("objs/cenaPaintball.obj");
-	//paintballField->setName("paintballField");
-	//paintballField->setTranslate(glm::scale(glm::mat4(1.0f), glm::vec3(0.6f)));
-	//paintballField->setCollision(true);
-	//paintballField->setDirection(glm::normalize(glm::vec3(cos(radsXY), sin(radsXY), sin(radsXY))));
-
 	Obj3D* toonLink1 = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
 	toonLink1->setName("ToonLink1");
-	toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
-	toonLink1->loadTexture("images/woodTexture.jpg");
-	objs.push_back(toonLink1);
+	//toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
+	//objs.push_back(toonLink1);
 
 	Obj3D* toonLink2 = toonLink1->copy();
 	toonLink2->setName("ToonLink2");
-	objs.push_back(toonLink2);
+	//objs.push_back(toonLink2);
 
-	//Obj3D* toonLink3 = toonLink1->copy();
-	//toonLink3->setName("ToonLink3");
-	//objs.push_back(toonLink3);
+	Obj3D* table = objManager->readObj("../objs/mesa01.obj");
+	table->setName("table2");
+	table->setScale(glm::vec3(1.5f));
+	table->setPosition(glm::vec3(-30.0f, 40.0f, 0.0f));
+	table->setCollision(true);
+	objs.push_back(table);
 
-	Obj3D* libertyStatue = objManager->readObj("../objs/target.obj");
-	libertyStatue->setName("target");
-	libertyStatue->loadTexture("images/woodTexture.jpg");
-	libertyStatue->setEulerAngles(glm::vec3(16.0f, 0.0f, -16.0f));
-	libertyStatue->setScale(glm::vec3(0.2f));
-	libertyStatue->setCollision(false);
-	libertyStatue->setDirection(glm::normalize(glm::vec3(cos(ang1), sin(ang2), sin(ang2))));
+	Obj3D* cenaPaintball = objManager->readObj("../objs/cenaPaintball.obj");
+	cenaPaintball->setName("CenaPaintball");
+	cenaPaintball->setScale(glm::vec3(5.0f));
+	cenaPaintball->setCollision(true);
+	objs.push_back(cenaPaintball);
+
+	Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
+	libertyStatue->setName("LibertStatue");
+	libertyStatue->setPosition(glm::vec3(30.0f, 40.0f, 0.0f));
+	libertyStatue->setScale(glm::vec3(35.0f));
+	libertyStatue->setCollision(true);
 	objs.push_back(libertyStatue);
 
 	auxBox = objManager->getHardcodedCube(0.5f);
@@ -344,19 +429,13 @@ void System::Run()
 
 	Obj3D* worldBox = objManager->getHardcodedCube(worldSize);
 
-	Obj3D* projectile = auxBox->copy();
-	projectile->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
-	projectile->setScale(glm::vec3(10.0f, 5.0f, 5.0f));
-
-
-	glm::vec3 NR = glm::vec3(-1.0f, 0.0f, 0.0f);
-	glm::vec3 NT = glm::vec3(0.0f, -1.0f, 0.0f);
-	glm::vec3 NL = glm::vec3(1.0f, 0.0f, 0.0f);
-	glm::vec3 NB = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 NFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 NBack = glm::vec3(0.0f, 0.0f, 1.0f);
+	projectile = auxBox->copy();
+	projectile->setScale(glm::vec3(2.0f));
+	projectile->setPosition(cameraPosition);
 
 	bool collidedWithAnyObjectThisFrame = false;
+
+	vector<bool> isCollisionHappening(objs.size(), false);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -379,66 +458,59 @@ void System::Run()
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
 		/* Desenha caixa do mundo */
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldBox->getTranslate()));
-		worldBox->renderTexture(coreShader.program);
-		drawObj(worldBox, GL_LINE_STRIP);
-
-		/* Move objetos da cena */
-		float angle = currentSeconds / 4;
-		glm::vec3 toonlinkCenter = toonLink1->getScale() * (*toonLink1->getGlobalPMax() + *toonLink1->getGlobalPMin()) / 2.0f;
-		toonlinkCenter += cos(currentSeconds) * 10.0f;
-		objs[0]->setPosition(glm::vec3(35.0f * cos(angle), -toonlinkCenter.y, 30.0f * sin(angle)));
-		objs[1]->setPosition(glm::vec3(40.0f * cos(90 + angle), 40 * sin(90 + angle), -toonlinkCenter.z));
-		objs[2]->setPosition(glm::vec3(-toonlinkCenter.x, 25.0f * cos(90 + angle), 25.0f * sin(90 + angle)));
-		objs[0]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
-		objs[1]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
-		objs[2]->setEulerAngles(glm::vec3(currentSeconds * 20.0f));
-
-		projectile->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldBox->getTranslate()));
+		//drawObj(worldBox, GL_LINE_STRIP);
 
 		glUniform1f(alphaLocation, 1.0f);
 		collidedWithAnyObjectThisFrame = false;
 
-		for (Obj3D* obj : objs) {
+		glm::vec3 projectileDelta = glm::vec3(elapsedSeconds * objSpeed) * projectile->getDirection();
+		projectile->setPosition(projectile->getPosition() + projectileDelta);
 
-			//glm::vec3 objCurrentDirection = obj->getDirection();
-			//glm::vec3 delta = glm::vec3(elapsedSeconds * objSpeed) * objCurrentDirection;
+		for (int objectIndex = 0; objectIndex < objs.size(); objectIndex++) {
+			Obj3D* obj = objs[objectIndex];
 
-			bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, true);
+			glm::vec3* reflectionNormal = new glm::vec3;
+			bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, true, reflectionNormal);
+			collidedWithAnyObjectThisFrame = collidedWithAnyObjectThisFrame || collidedWithCurrentObject;
 
 			if (collidedWithCurrentObject) {
-				collidedWithAnyObjectThisFrame = true;
+				if (!isCollisionHappening[objectIndex]) {
+					cout << "collision with " << obj->getName() << endl;
+					cout << "reflected!" << endl;
+					glm::vec3 newDirection = reflexao(projectile->getDirection(), *reflectionNormal);
+					projectile->setDirection(newDirection);
+				}
+				else {
+					cout << "collision with this object happened in previous frame, not reflecting" << endl;
+				}
 			}
-
-			if (collidedWithCurrentObject) {
-				cout << "collided with " << obj->getName() << endl;
-			} else {
-				cout << "didn't collide with " << obj->getName() << endl;
+			else {
+				//cout << "no collision with " << obj->getName() << endl;
 			}
+			isCollisionHappening[objectIndex] = collidedWithCurrentObject;
 
 			/* Desenha objeto */
 			if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
-			obj->renderTexture(coreShader.program);
 			drawObj(obj, GL_TRIANGLES);
 			glUniform1f(alphaLocation, 1.0f);
 		}
-		cout << endl;
 
 		/* Desenha projétil */
 		if (collidedWithAnyObjectThisFrame) glUniform1f(alphaLocation, 0.2f);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(projectile->getTranslate()));
-		projectile->renderTexture(coreShader.program);
+		drawObj(projectile, GL_TRIANGLES, GL_CW);
 		drawObj(projectile, GL_LINE_STRIP);
 
 		/* Desenha bounding sphere do projétil */
-		int numberOfCircles = 20;
+		glUniform1f(alphaLocation, 0.4f);
+		int numberOfCircles = 6;
 		for (int i = 0; i < numberOfCircles; i++) {
 			auxCircle->setScale(glm::vec3(getBoundingSphereRadius(projectile) * 2.0f));
 			auxCircle->setPosition(projectile->getPosition());
 			auxCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxCircle->getTranslate()));
-			auxCircle->renderTexture(coreShader.program);
 			drawObj(auxCircle, GL_LINE_STRIP);
 		}
 		glUniform1f(alphaLocation, 1.0f);

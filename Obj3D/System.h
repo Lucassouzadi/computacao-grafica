@@ -37,7 +37,7 @@ public:
 	GLFWwindow* window;
 	Shader coreShader;
 	Obj3D *auxCircle, *auxBox;
-	int alphaLocation, modelLocation, projectionLocation, viewLocation;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation;
 public:
 	System();
 	~System();
@@ -50,12 +50,12 @@ public:
 
 	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
 
-	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting);
+	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting, glm::vec3 *reflectionNormal);
 
 	void Finish();
 
-	GLuint LoadTexture(char* filepath);
-	void RenderTexture(GLuint texture);
+	void drawObj(Obj3D* obj, GLenum mode, GLenum frontFace);
+	void bindTexture(GLuint texture);
 };
 
 #endif

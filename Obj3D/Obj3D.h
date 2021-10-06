@@ -44,5 +44,5 @@ class Obj3D {
 		glm::vec3* getGlobalPMin();
 		glm::vec3* getGlobalPMax();
 		void loadTexture(char* filepath);
-		void renderTexture(GLuint program);
+		GLuint getTexture();
 };
