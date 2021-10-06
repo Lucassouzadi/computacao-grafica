@@ -3,6 +3,7 @@
 #include <SOIL.h>
 
 Obj3D::Obj3D() {
+	this->active = true;
 	this->globalPMin = new glm::vec3(numeric_limits<float>::max());
 	this->globalPMax = new glm::vec3(-numeric_limits<float>::max());
 	this->position = glm::vec3(0.0f);
@@ -15,6 +16,7 @@ Obj3D::Obj3D() {
 
 Obj3D* Obj3D::copy() {
 	Obj3D* newObj = new Obj3D();
+	newObj->active = this->active;
 	newObj->mesh = this->getMesh();
 	newObj->globalPMin = this->globalPMin;
 	newObj->globalPMax = this->globalPMax;
@@ -119,6 +121,10 @@ void Obj3D::setGlobalPMax(glm::vec3* p) {
 	this->globalPMax = p;
 }
 
+void Obj3D::setActive(bool active) {
+	this->active = active;
+}
+
 bool Obj3D::getCollision()
 {
 	return collision;
@@ -173,4 +179,8 @@ glm::vec3* Obj3D::getGlobalPMax() {
 
 GLuint Obj3D::getTexture() {
 	return texture;
+}
+
+bool Obj3D::isActive() {
+	return active;
 }

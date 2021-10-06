@@ -13,7 +13,6 @@ Obj3D* ObjManager::readObj(string filename) {
 		getline(arq, line);
 		stringstream sline;
 		sline << line;
-		cout << line << endl;
 		string lineType;
 		sline >> lineType;
 		if (lineType == "" || lineType[0] == '#') continue;
@@ -339,7 +338,7 @@ Obj3D* ObjManager::get2DCircle(GLfloat radius, int vertices) {
 
 	Group* circle = new Group();
 	circle->setVAO(circleVAO);
-	circle->setNumVertices(vertices+1);
+	circle->setNumVertices(vertices + 1);
 
 	Mesh* mesh = new Mesh();
 	mesh->addGroup(circle);
@@ -349,5 +348,49 @@ Obj3D* ObjManager::get2DCircle(GLfloat radius, int vertices) {
 	obj->setGlobalPMin(new glm::vec3(-abs(radius)));
 	obj->setName("circulo");
 	obj->setMesh(mesh);
+	return obj;
+}
+
+
+Obj3D* ObjManager::getCross(GLfloat width, GLfloat length) {
+	width /= 2;
+	length /= 2;
+
+	Face* face1 = new Face();
+	face1->addVertex(0, 0, 0);
+	face1->addVertex(1, 0, 0);
+	face1->addVertex(2, 0, 0);
+	face1->addVertex(3, 0, 0);
+	Face* face2 = new Face();
+	face2->addVertex(4, 0, 0);
+	face2->addVertex(5, 0, 0);
+	face2->addVertex(6, 0, 0);
+	face2->addVertex(7, 0, 0);
+
+	Group* group = new Group();
+	group->addFace(face1);
+	group->addFace(face2);
+
+	Mesh* mesh = new Mesh();
+	mesh->addVertex(new glm::vec3(0.0f, -width, length));		// 0
+	mesh->addVertex(new glm::vec3(0.0f, width, length));		// 1
+	mesh->addVertex(new glm::vec3(0.0f, width, -length));		// 2
+	mesh->addVertex(new glm::vec3(0.0f, -width, -length));		// 3
+	mesh->addVertex(new glm::vec3(0.0f, -length, width));		// 4
+	mesh->addVertex(new glm::vec3(0.0f, length, width));		// 5
+	mesh->addVertex(new glm::vec3(0.0f, length, -width));		// 6
+	mesh->addVertex(new glm::vec3(0.0f, -length, -width));		// 7
+
+	mesh->addTexture(new glm::vec2(0.0f));
+	mesh->addNormal(new glm::vec3(1.0f));
+
+	mesh->addGroup(group);
+
+	Obj3D* obj = new Obj3D();
+	obj->setGlobalPMax(new glm::vec3(length));
+	obj->setGlobalPMin(new glm::vec3(-length));
+	obj->setName("cruz");
+	obj->setMesh(mesh);
+	this->objToVAO(obj);
 	return obj;
 }

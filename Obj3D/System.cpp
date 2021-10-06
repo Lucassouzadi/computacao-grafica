@@ -9,6 +9,7 @@ glm::vec3 cameraPosition = glm::vec3(0.0f, 20.0f, 50.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+float objSpeed = 20.0f;
 float cameraSpeed = 38.0f;
 
 //mouse configs
@@ -32,10 +33,17 @@ glm::vec3 reflexao(glm::vec3 direcao, glm::vec3 normal) {
 	return novaDirecao;
 }
 
+void resetProjectile() {
+	projectile->setActive(false);
+	projectile->setPosition(glm::vec3(0.0f, -10.0f, 0.0f));
+	projectile->setDirection(glm::vec3(0.0f));
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		cout << "mouse right click" << endl;
-		projectile->setPosition(cameraPosition);
+		projectile->setActive(true);
+		projectile->setPosition(cameraPosition + cameraFront * 2.0f);
 		projectile->setDirection(cameraFront);
 		projectile->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
 	}
@@ -173,26 +181,17 @@ float lenght(glm::vec3 vector) {
 	return sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
 }
 
-glm::vec3 normalize(glm::vec3 vector) {
-	float vectorLength = length(vector);
-	return vector / vectorLength;
-}
-
 void System::drawObj(Obj3D* obj, GLenum mode, GLenum frontFace = GL_CCW) {
 	glFrontFace(frontFace);
-	bindTexture(obj->getTexture());
+	glUniform1i(hasTextureLocation, obj->getTexture() != 0);
+	glUniform1i(textureLocation, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, obj->getTexture());
 	for (Group* group : obj->getMesh()->getGroups()) {
 		glBindVertexArray(group->getVAO());
 		glDrawArrays(mode, 0, group->getNumVertices());
 	}
 	glBindVertexArray(0);
-}
-
-void System::bindTexture(GLuint texture) {
-	glUniform1i(hasTextureLocation, texture != 0);
-	glUniform1i(textureLocation, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
 }
 
 glm::vec3 rotatePoint(glm::vec3 point, glm::vec3 centerOfRotationCoords, glm::vec3 eulerAngles, bool reverse = false) {
@@ -388,14 +387,13 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 
 void System::Run() {
 	/* Setup da cena */
-	float objSpeed = 10.5f;
 	float worldSize = 100.0f;
 
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* toonLink1 = objManager->readObj("../objs/DolToonlinkR1_fixed.obj");
+	Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
 	toonLink1->setName("ToonLink1");
 	//toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
 	//objs.push_back(toonLink1);
@@ -404,34 +402,52 @@ void System::Run() {
 	toonLink2->setName("ToonLink2");
 	//objs.push_back(toonLink2);
 
-	Obj3D* table = objManager->readObj("../objs/mesa01.obj");
-	table->setName("table2");
+	Obj3D* table = objManager->readObj("objs/mesa01.obj");
+	table->setName("table");
+	table->loadTexture("images/woodTexture.jpg");
 	table->setScale(glm::vec3(1.5f));
-	table->setPosition(glm::vec3(-30.0f, 40.0f, 0.0f));
+	table->setPosition(glm::vec3(-40.0f, 0.0f, -10.0f));
 	table->setCollision(true);
 	objs.push_back(table);
 
-	Obj3D* cenaPaintball = objManager->readObj("../objs/cenaPaintball.obj");
+	Obj3D* target1 = objManager->readObj("objs/target.obj");
+	target1->setName("target");
+	target1->loadTexture("images/target_texture.jpg");
+	target1->setScale(glm::vec3(0.2f));
+	target1->setEulerAngles(glm::vec3(-90.0f, 0.0f, 0.0f));
+	target1->setPosition(glm::vec3(20.0f, 0.0f, 20.0f));
+	target1->setCollision(false);
+	objs.push_back(target1);
+
+	Obj3D* target2 = target1->copy();
+	target2->setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+	objs.push_back(target2);
+
+	Obj3D* target3 = target1->copy();
+	target3->setPosition(glm::vec3(-20.0f, 0.0f, 20.0f));
+	objs.push_back(target3);
+
+	Obj3D* cenaPaintball = objManager->readObj("objs/cenaPaintball.obj");
 	cenaPaintball->setName("CenaPaintball");
 	cenaPaintball->setScale(glm::vec3(5.0f));
 	cenaPaintball->setCollision(true);
 	objs.push_back(cenaPaintball);
 
-	Obj3D* libertyStatue = objManager->readObj("../objs/LibertStatue.obj");
+	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
 	libertyStatue->setName("LibertStatue");
-	libertyStatue->setPosition(glm::vec3(30.0f, 40.0f, 0.0f));
+	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 	libertyStatue->setScale(glm::vec3(35.0f));
 	libertyStatue->setCollision(true);
 	objs.push_back(libertyStatue);
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
-
+	Obj3D* aimObj = objManager->getCross(0.003f, 0.06f);
 	Obj3D* worldBox = objManager->getHardcodedCube(worldSize);
 
 	projectile = auxBox->copy();
-	projectile->setScale(glm::vec3(2.0f));
-	projectile->setPosition(cameraPosition);
+	projectile->setScale(glm::vec3(3.0f));
+	resetProjectile();
 
 	bool collidedWithAnyObjectThisFrame = false;
 
@@ -464,37 +480,52 @@ void System::Run() {
 		glUniform1f(alphaLocation, 1.0f);
 		collidedWithAnyObjectThisFrame = false;
 
-		glm::vec3 projectileDelta = glm::vec3(elapsedSeconds * objSpeed) * projectile->getDirection();
-		projectile->setPosition(projectile->getPosition() + projectileDelta);
+		aimObj->setPosition(cameraPosition + cameraFront / 2.0f);
+		aimObj->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(aimObj->getTranslate()));
+		drawObj(aimObj, GL_TRIANGLES);
+		
+		if (projectile->isActive()) {
+			glm::vec3 projectileDelta = glm::vec3(elapsedSeconds * objSpeed) * projectile->getDirection();
+			projectile->setPosition(projectile->getPosition() + projectileDelta);
+		}
 
 		for (int objectIndex = 0; objectIndex < objs.size(); objectIndex++) {
 			Obj3D* obj = objs[objectIndex];
-
-			glm::vec3* reflectionNormal = new glm::vec3;
-			bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, true, reflectionNormal);
-			collidedWithAnyObjectThisFrame = collidedWithAnyObjectThisFrame || collidedWithCurrentObject;
-
-			if (collidedWithCurrentObject) {
-				if (!isCollisionHappening[objectIndex]) {
-					cout << "collision with " << obj->getName() << endl;
-					cout << "reflected!" << endl;
-					glm::vec3 newDirection = reflexao(projectile->getDirection(), *reflectionNormal);
-					projectile->setDirection(newDirection);
-				}
-				else {
-					cout << "collision with this object happened in previous frame, not reflecting" << endl;
-				}
-			}
-			else {
-				//cout << "no collision with " << obj->getName() << endl;
-			}
-			isCollisionHappening[objectIndex] = collidedWithCurrentObject;
+			if (!obj->isActive()) continue;
 
 			/* Desenha objeto */
-			if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 			drawObj(obj, GL_TRIANGLES);
 			glUniform1f(alphaLocation, 1.0f);
+
+			/* Teste de colisão */
+			if (projectile->isActive()) {
+				glm::vec3* reflectionNormal = new glm::vec3;
+				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, false, reflectionNormal);
+				collidedWithAnyObjectThisFrame = collidedWithAnyObjectThisFrame || collidedWithCurrentObject;
+
+				if (collidedWithCurrentObject) {
+					if (!obj->getCollision()) {
+						obj->setActive(false);
+						resetProjectile();
+					} else if (!isCollisionHappening[objectIndex]) {
+						cout << "collision with reflective object: " << obj->getName() << endl;
+						cout << "reflected!" << endl;
+						glm::vec3 newDirection = reflexao(projectile->getDirection(), *reflectionNormal);
+						projectile->setDirection(newDirection);
+					}
+					else {
+						cout << "collision with this reflective object happened in previous frame, not reflecting" << endl;
+					}
+				}
+				else {
+					//cout << "no collision with " << obj->getName() << endl;
+				}
+				isCollisionHappening[objectIndex] = collidedWithCurrentObject;
+
+				if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
+			}
 		}
 
 		/* Desenha projétil */

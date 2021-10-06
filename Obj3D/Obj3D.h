@@ -18,6 +18,7 @@ class Obj3D {
 		glm::vec3* globalPMax;
 		string name;
 		GLuint texture;
+		bool active;
 		void Obj3D::computeTranslate();
 	public:
 		Obj3D();
@@ -45,4 +46,6 @@ class Obj3D {
 		glm::vec3* getGlobalPMax();
 		void loadTexture(char* filepath);
 		GLuint getTexture();
+		void setActive(bool active);
+		bool isActive();
 };
