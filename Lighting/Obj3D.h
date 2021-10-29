@@ -19,6 +19,7 @@ class Obj3D {
 		glm::vec3 eulerAngles;
 		glm::vec3 scale;
 		glm::vec3 direction;
+		glm::vec3 color;
 		glm::mat4 translate;
 		void Obj3D::computeTranslate();
 	public:
@@ -34,6 +35,7 @@ class Obj3D {
 		void setName(string name);
 		void setGlobalPMin(glm::vec3* p);
 		void setGlobalPMax(glm::vec3* p);
+		void setColor(glm::vec3 color);
 		bool getCollision();
 		glm::mat4 getTranslate();
 		glm::vec3 getOrigin();
@@ -45,6 +47,7 @@ class Obj3D {
 		string getName();
 		glm::vec3* getGlobalPMin();
 		glm::vec3* getGlobalPMax();
+		glm::vec3 getColor();
 		void loadTexture(char* filepath);
 		GLuint getTexture();
 		void setActive(bool active);

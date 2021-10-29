@@ -36,8 +36,8 @@ private:
 public:
 	GLFWwindow* window;
 	Shader coreShader;
-	Obj3D *auxCircle, *auxBox;
-	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation;
+	Obj3D *auxCircle, *auxBox, *auxSphere;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation;
 public:
 	System();
 	~System();

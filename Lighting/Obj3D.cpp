@@ -125,6 +125,10 @@ void Obj3D::setActive(bool active) {
 	this->active = active;
 }
 
+void Obj3D::setColor(glm::vec3 color) {
+	this->color = color;
+}
+
 bool Obj3D::getCollision()
 {
 	return collision;
@@ -179,6 +183,11 @@ glm::vec3* Obj3D::getGlobalPMax() {
 
 GLuint Obj3D::getTexture() {
 	return texture;
+}
+
+glm::vec3 Obj3D::getColor()
+{
+	return color;
 }
 
 bool Obj3D::isActive() {

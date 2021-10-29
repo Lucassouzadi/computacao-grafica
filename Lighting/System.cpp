@@ -157,6 +157,9 @@ int System::SystemSetup()
 	viewLocation = glGetUniformLocation(coreShader.program, "view");
 	textureLocation = glGetUniformLocation(coreShader.program, "texture1");
 	hasTextureLocation = glGetUniformLocation(coreShader.program, "hasTexture");
+	objColorLocation = glGetUniformLocation(coreShader.program, "objColor");
+	ambientColorLocation = glGetUniformLocation(coreShader.program, "aColor");
+	ambientColorStrengthLocation = glGetUniformLocation(coreShader.program, "aStrength");
 
 	return EXIT_SUCCESS;
 }
@@ -184,6 +187,7 @@ float lenght(glm::vec3 vector) {
 
 void System::drawObj(Obj3D* obj, GLenum mode, GLenum frontFace = GL_CCW) {
 	glFrontFace(frontFace);
+	glUniform3fv(objColorLocation, 1, glm::value_ptr((obj->getColor())));
 	glUniform1i(hasTextureLocation, obj->getTexture() != 0);
 	glUniform1i(textureLocation, 0);
 	glActiveTexture(GL_TEXTURE0);
@@ -385,20 +389,19 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 	return coollidedWithAnyGroup;
 }
 
-
 void System::Run() {
 	/* Setup da cena */
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
-	toonLink1->setName("ToonLink1");
+	//Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
+	//toonLink1->setName("ToonLink1");
 	//toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
 	//objs.push_back(toonLink1);
 
-	Obj3D* toonLink2 = toonLink1->copy();
-	toonLink2->setName("ToonLink2");
+	//Obj3D* toonLink2 = toonLink1->copy();
+	//toonLink2->setName("ToonLink2");
 	//objs.push_back(toonLink2);
 
 	Obj3D* table = objManager->readObj("objs/mesa01.obj");
@@ -438,10 +441,13 @@ void System::Run() {
 	Obj3D* cenaPaintball = objManager->readObj("objs/cenaPaintball.obj");
 	cenaPaintball->setName("CenaPaintball");
 	cenaPaintball->setScale(glm::vec3(5.0f));
+	cenaPaintball->setColor(glm::vec3(0.6f, 0.0f, 0.1f));
 	cenaPaintball->setCollision(true);
 	objs.push_back(cenaPaintball);
 
 	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
+	//libertyStatue->setColor(glm::vec3(0.25f, 0.64f, 0.80f));
+	libertyStatue->setColor(glm::vec3(1.0f));
 	libertyStatue->setName("LibertStatue");
 	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 	libertyStatue->setScale(glm::vec3(35.0f));
@@ -450,11 +456,25 @@ void System::Run() {
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
+	auxSphere = objManager->readObj("objs/sphere.obj");
+	auxSphere->setScale(glm::vec3(0.7f));
 	Obj3D* aimObj = objManager->getCross(0.003f, 0.06f);
 
 	projectile = auxBox->copy();
 	projectile->setScale(glm::vec3(3.0f));
 	resetProjectile();
+
+
+	/* Ambient Lighting setup */
+	glm::vec3 ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
+	float ambientStrenght = 0.16f;
+	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
+	glUniform1f(ambientColorStrengthLocation, ambientStrenght);
+
+	/* (WIP) Diffuse Lighting setup */
+	glm::vec3 lightPosition = glm::vec3(-10.0f, 60.0f, 0.0f);
+	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
 
 	vector<bool> isCollisionHappening(objs.size(), false);
 
@@ -506,7 +526,7 @@ void System::Run() {
 			if (projectile->isActive()) {
 
 				glm::vec3* reflectionNormal = new glm::vec3;
-				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, true, reflectionNormal);
+				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, false, reflectionNormal);
 
 				if (collidedWithCurrentObject) {
 					collidedWithAnyObjectThisFrame = true;
@@ -529,22 +549,30 @@ void System::Run() {
 		}
 
 		/* Desenha projétil */
-		if (collidedWithAnyObjectThisFrame) glUniform1f(alphaLocation, 0.2f);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(projectile->getTranslate()));
 		drawObj(projectile, GL_TRIANGLES, GL_CW);
 		drawObj(projectile, GL_LINE_STRIP);
 
 		/* Desenha bounding sphere do projétil */
-		glUniform1f(alphaLocation, 0.4f);
-		int numberOfCircles = 6;
-		for (int i = 0; i < numberOfCircles; i++) {
-			auxCircle->setScale(glm::vec3(getBoundingSphereRadius(projectile) * 2.0f));
-			auxCircle->setPosition(projectile->getPosition());
-			auxCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
-			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxCircle->getTranslate()));
-			drawObj(auxCircle, GL_LINE_STRIP);
-		}
-		glUniform1f(alphaLocation, 1.0f);
+		//int numberOfCircles = 6;
+		//for (int i = 0; i < numberOfCircles; i++) {
+		//	auxCircle->setScale(glm::vec3(getBoundingSphereRadius(projectile) * 2.0f));
+		//	auxCircle->setPosition(projectile->getPosition());
+		//	auxCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
+		//	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxCircle->getTranslate()));
+		//	drawObj(auxCircle, GL_LINE_STRIP);
+		//}
+
+		/* Desenha ponto de luz */
+		auxSphere->setColor(lightColor);
+		auxSphere->setPosition(lightPosition);
+		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxSphere->getTranslate()));
+		glUniform3fv(ambientColorLocation, 1, glm::value_ptr(glm::vec3(1.0f)));
+		glUniform1f(ambientColorStrengthLocation, 1.0f);
+		drawObj(auxSphere, GL_TRIANGLES);
+		drawObj(auxSphere, GL_LINE_STRIP);
+		glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
+		glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 
 		glfwSwapBuffers(window);
 	}
