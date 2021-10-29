@@ -7,18 +7,19 @@
 class Obj3D {
 	private:
 		bool collision;
+		bool active;
+		string name;
+		GLuint texture;
+
 		Mesh* mesh;
-		glm::mat4 translate;
+		glm::vec3* globalPMin;
+		glm::vec3* globalPMax;
 		glm::vec3 origin;
 		glm::vec3 position;
 		glm::vec3 eulerAngles;
 		glm::vec3 scale;
 		glm::vec3 direction;
-		glm::vec3* globalPMin;
-		glm::vec3* globalPMax;
-		string name;
-		GLuint texture;
-		bool active;
+		glm::mat4 translate;
 		void Obj3D::computeTranslate();
 	public:
 		Obj3D();

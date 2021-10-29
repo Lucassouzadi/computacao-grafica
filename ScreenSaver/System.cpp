@@ -1,6 +1,8 @@
 #include "System.h"
 constexpr auto PI = 3.14159265;
 
+using namespace std;
+
 float dot(glm::vec2 v1, glm::vec2 v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
@@ -8,7 +10,7 @@ float dot(glm::vec2 v1, glm::vec2 v2) {
 glm::vec2 reflexao(glm::vec2 direcao, glm::vec2 normal) {
 	glm::vec2 direcaoContraria = -direcao;
 	float a = dot(normal, direcaoContraria);
-	glm::vec2 novaDirecao = glm::vec2(2 * normal.x * a - direcaoContraria.x, 2 * normal.y * a - direcaoContraria.y);
+	glm::vec2 novaDirecao = 2.0f * normal * a - direcaoContraria;
 	return novaDirecao;
 }
 
@@ -96,7 +98,7 @@ void System::Run()
 	};
 	GLfloat vertices[] =
 	{
-		0.0f, 0.3f, 0.0f,	// Top
+		0.0f,   0.3f, 0.0f,	// Top
 		0.3f,  -0.3f, 0.0f,	// Bottom Right
 		-0.3f, -0.3f, 0.0f	// Bottom Left
 	};
@@ -164,47 +166,43 @@ void System::Run()
 
 		glm::vec2 delta = glm::vec2(elapsedSeconds * speed) * direction;
 
-		for (int vert = 0; vert < 3; vert++) {
+		for (int vert = 0; vert < (sizeof(vertices) / sizeof(float)) / 3; vert++) {
 			glm::vec2 vertPos = glm::vec2(currentPosition.x + vertices[vert * 3], currentPosition.y + vertices[vert * 3 + 1]);
 			glm::vec2 vertFuturePos = vertPos + delta;
 
 			bool collided = false;
 			glm::vec2 distanceUntillCollidedBorder;
-			glm::vec2 collisionNormal;
+			glm::vec2 reflectionNormal;
 			if (collided = vertFuturePos.x > 1.0f) {		// Right border colision
-				float tan = direction.y / direction.x;
+				cout << "Collision with Right border" << endl;
 				float xUntilRightBorder = 1.0f - vertPos.x;
-				float yUntilRightBorder = tan * xUntilRightBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilRightBorder, yUntilRightBorder);
-				collisionNormal = NR;
+				distanceUntillCollidedBorder = delta * (xUntilRightBorder / delta.x);
+				reflectionNormal = NR;
 			}
 			else if (collided = vertFuturePos.x < -1.0f) {	// Left border colision
-				float tan = direction.y / direction.x;
+				cout << "Collision with Left border" << endl;
 				float xUntilLeftBorder = -1.0f - vertPos.x;
-				float yUntilLeftBorder = tan * xUntilLeftBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilLeftBorder, yUntilLeftBorder);
-				collisionNormal = NL;
+				distanceUntillCollidedBorder = delta * (xUntilLeftBorder / delta.x);
+				reflectionNormal = NL;
 			}
 			else if (collided = vertFuturePos.y > 1.0f) {	// Top border colision
-				float tan = direction.x / direction.y;
+				cout << "Collision with Top border" << endl;
 				float yUntilTopBorder = 1.0f - vertPos.y;
-				float xUntilTopBorder = tan * yUntilTopBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilTopBorder, yUntilTopBorder);
-				collisionNormal = NT;
+				distanceUntillCollidedBorder = delta * (yUntilTopBorder / delta.y);
+				reflectionNormal = NT;
 			}
 			else if (collided = vertFuturePos.y < -1.0f) {	// Bottom border colision
-				float tan = direction.x / direction.y;
+				cout << "Collision with Bottom border" << endl;
 				float yUntilBottomBorder = -1.0f - vertPos.y;
-				float xUntilBottomBorder = tan * yUntilBottomBorder;
-				distanceUntillCollidedBorder = glm::vec2(xUntilBottomBorder, yUntilBottomBorder);
-				collisionNormal = NB;
+				distanceUntillCollidedBorder = delta * (yUntilBottomBorder / delta.y);
+				reflectionNormal = NB;
 			}
 
 			if (collided) {
 				currentPosition += distanceUntillCollidedBorder;
 				delta -= distanceUntillCollidedBorder;
-				delta = reflexao(delta, collisionNormal);
-				direction = reflexao(direction, collisionNormal);
+				delta = reflexao(delta, reflectionNormal);
+				direction = reflexao(direction, reflectionNormal);
 				vert = 0;
 			}
 		}
@@ -212,8 +210,6 @@ void System::Run()
 		currentPosition += delta;
 		translate[12] = currentPosition.x;
 		translate[13] = currentPosition.y;
-
-
 
 		coreShader.Use();
 		glUniformMatrix4fv(translateLocation, 1, GL_FALSE, translate);

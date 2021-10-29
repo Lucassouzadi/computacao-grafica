@@ -7,8 +7,8 @@
 class Mesh {
 	private:
 		vector<glm::vec3*> vertex;
-		vector<glm::vec3*> norms;
 		vector<glm::vec2*> texts;
+		vector<glm::vec3*> norms;
 		vector<Group*> groups;
 	public:
 		void addVertex(glm::vec3* vertex);

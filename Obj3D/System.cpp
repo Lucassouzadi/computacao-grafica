@@ -115,6 +115,7 @@ int System::GLFWInit() {
 
 	glfwMakeContextCurrent(window);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
@@ -160,21 +161,21 @@ int System::SystemSetup()
 	return EXIT_SUCCESS;
 }
 
-void System::ProcessInput(GLFWwindow* window, float elapsedSeconds)
+void System::processInput(GLFWwindow* window, float elapsedSeconds)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
-	glm::vec3 cameraFrontOnThefloor = glm::normalize(glm::vec3(cameraFront.x, 0.0, cameraFront.z));
+	glm::vec3 cameraFrontOnThefloor = glm::normalize(glm::vec3(cameraFront.x, 0.0f, cameraFront.z));
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPosition += cameraSpeed * elapsedSeconds * cameraFrontOnThefloor;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		cameraPosition -= cameraSpeed * elapsedSeconds * cameraFrontOnThefloor;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPosition -= glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp)) * cameraSpeed * elapsedSeconds;
+		cameraPosition -= cameraSpeed * elapsedSeconds * glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPosition += glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp)) * cameraSpeed * elapsedSeconds;
+		cameraPosition += cameraSpeed * elapsedSeconds * glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp));
 }
 
 float lenght(glm::vec3 vector) {
@@ -387,8 +388,6 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 
 void System::Run() {
 	/* Setup da cena */
-	float worldSize = 100.0f;
-
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
 	ObjManager* objManager = new ObjManager();
@@ -409,6 +408,15 @@ void System::Run() {
 	table->setPosition(glm::vec3(-40.0f, 0.0f, -10.0f));
 	table->setCollision(true);
 	objs.push_back(table);
+
+	Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
+	table2->setName("table");
+	table2->loadTexture("images/woodTexture.jpg");
+	table2->setScale(glm::vec3(1.5f));
+	table2->setPosition(glm::vec3(-65.0f, 0.0f, 0.0f));
+	table2->setEulerAngles(glm::vec3(0.0f, 40.0f, 0.0f));
+	table2->setCollision(true);
+	objs.push_back(table2);
 
 	Obj3D* target1 = objManager->readObj("objs/target.obj");
 	target1->setName("target");
@@ -443,13 +451,10 @@ void System::Run() {
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
 	Obj3D* aimObj = objManager->getCross(0.003f, 0.06f);
-	Obj3D* worldBox = objManager->getHardcodedCube(worldSize);
 
 	projectile = auxBox->copy();
 	projectile->setScale(glm::vec3(3.0f));
 	resetProjectile();
-
-	bool collidedWithAnyObjectThisFrame = false;
 
 	vector<bool> isCollisionHappening(objs.size(), false);
 
@@ -464,32 +469,31 @@ void System::Run() {
 		double elapsedSeconds = currentSeconds - previousSeconds;
 		previousSeconds = currentSeconds;
 
-		ProcessInput(window, elapsedSeconds);
+		processInput(window, elapsedSeconds);
 
 		/* Projection e view */
 		glm::mat4 projection, view;
 		projection = glm::perspective(glm::radians(90.0f), (float)screenWidth / (float)screenHeight, 0.01f, 1000.0f);
-		view = glm::lookAt(cameraPosition, cameraPosition + cameraFront, cameraUp);
+		glm::vec3 eye = cameraPosition;
+		glm::vec3 front = cameraPosition + cameraFront;
+		glm::vec3 up = cameraUp;
+		view = glm::lookAt(eye, front, up);
 		glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
-		/* Desenha caixa do mundo */
-		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(worldBox->getTranslate()));
-		//drawObj(worldBox, GL_LINE_STRIP);
-
-		glUniform1f(alphaLocation, 1.0f);
-		collidedWithAnyObjectThisFrame = false;
-
-		aimObj->setPosition(cameraPosition + cameraFront / 2.0f);
+		/* Desenha mira */
+		aimObj->setPosition(front);
 		aimObj->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(aimObj->getTranslate()));
 		drawObj(aimObj, GL_TRIANGLES);
 		
+		/* Desloca projétil */
 		if (projectile->isActive()) {
 			glm::vec3 projectileDelta = glm::vec3(elapsedSeconds * objSpeed) * projectile->getDirection();
 			projectile->setPosition(projectile->getPosition() + projectileDelta);
 		}
 
+		bool collidedWithAnyObjectThisFrame = false;
 		for (int objectIndex = 0; objectIndex < objs.size(); objectIndex++) {
 			Obj3D* obj = objs[objectIndex];
 			if (!obj->isActive()) continue;
@@ -497,15 +501,15 @@ void System::Run() {
 			/* Desenha objeto */
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 			drawObj(obj, GL_TRIANGLES);
-			glUniform1f(alphaLocation, 1.0f);
 
 			/* Teste de colisão */
 			if (projectile->isActive()) {
+
 				glm::vec3* reflectionNormal = new glm::vec3;
-				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, false, reflectionNormal);
-				collidedWithAnyObjectThisFrame = collidedWithAnyObjectThisFrame || collidedWithCurrentObject;
+				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, true, reflectionNormal);
 
 				if (collidedWithCurrentObject) {
+					collidedWithAnyObjectThisFrame = true;
 					if (!obj->getCollision()) {
 						obj->setActive(false);
 						resetProjectile();
@@ -519,12 +523,8 @@ void System::Run() {
 						cout << "collision with this reflective object happened in previous frame, not reflecting" << endl;
 					}
 				}
-				else {
-					//cout << "no collision with " << obj->getName() << endl;
-				}
-				isCollisionHappening[objectIndex] = collidedWithCurrentObject;
 
-				if (collidedWithCurrentObject) glUniform1f(alphaLocation, 0.2f);
+				isCollisionHappening[objectIndex] = collidedWithCurrentObject;
 			}
 		}
 

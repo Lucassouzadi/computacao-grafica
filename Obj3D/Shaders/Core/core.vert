@@ -14,7 +14,7 @@ uniform mat4 projection;
 
 void main()
 {
-	color = (vNormal+1.0)*(vNormal+1.0)/4.0;
+	color = (vNormal+1.0) / 2.0;
 	gl_Position = projection * view * model * vec4(vPosition, 1.0);
 	TexCoord = vec2(vTexture.x, 1.0 - vTexture.y);
 }

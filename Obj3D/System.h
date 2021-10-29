@@ -48,7 +48,7 @@ public:
 
 	void Run();
 
-	void ProcessInput(GLFWwindow* window, float elapsedSeconds);
+	void processInput(GLFWwindow* window, float elapsedSeconds);
 
 	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting, glm::vec3 *reflectionNormal);
 
