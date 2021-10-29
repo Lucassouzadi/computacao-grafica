@@ -30,14 +30,14 @@ class System
 {
 private:
 	// Screen
-	const GLint WIDTH = 1000, HEIGHT = 800;
+	const GLint WIDTH = 1200, HEIGHT = 900;
 	int screenWidth, screenHeight;
 
 public:
 	GLFWwindow* window;
 	Shader coreShader;
 	Obj3D *auxCircle, *auxBox, *auxSphere;
-	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation, diffusePositionLocation, diffuseColorLocation;
 public:
 	System();
 	~System();

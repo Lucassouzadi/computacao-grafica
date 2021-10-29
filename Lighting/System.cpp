@@ -160,6 +160,8 @@ int System::SystemSetup()
 	objColorLocation = glGetUniformLocation(coreShader.program, "objColor");
 	ambientColorLocation = glGetUniformLocation(coreShader.program, "aColor");
 	ambientColorStrengthLocation = glGetUniformLocation(coreShader.program, "aStrength");
+	diffuseColorLocation = glGetUniformLocation(coreShader.program, "dColor");
+	diffusePositionLocation = glGetUniformLocation(coreShader.program, "dPosition");
 
 	return EXIT_SUCCESS;
 }
@@ -395,10 +397,12 @@ void System::Run() {
 
 	ObjManager* objManager = new ObjManager();
 
-	//Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
-	//toonLink1->setName("ToonLink1");
-	//toonLink1->setScale(glm::vec3(0.6f, 1.5f, 0.6f));
-	//objs.push_back(toonLink1);
+	Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
+	toonLink1->setName("ToonLink1");
+	toonLink1->setScale(glm::vec3(1.5f));
+	toonLink1->setColor(glm::vec3(0.0f, 1.0f, 0.0f));
+	toonLink1->setPosition(glm::vec3(-5.0f, 0.0f, 0.0f));
+	objs.push_back(toonLink1);
 
 	//Obj3D* toonLink2 = toonLink1->copy();
 	//toonLink2->setName("ToonLink2");
@@ -408,35 +412,35 @@ void System::Run() {
 	table->setName("table");
 	table->loadTexture("images/woodTexture.jpg");
 	table->setScale(glm::vec3(1.5f));
-	table->setPosition(glm::vec3(-40.0f, 0.0f, -10.0f));
+	table->setPosition(glm::vec3(-35.0f, 0.0f, -10.0f));
 	table->setCollision(true);
 	objs.push_back(table);
 
-	Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
-	table2->setName("table");
-	table2->loadTexture("images/woodTexture.jpg");
-	table2->setScale(glm::vec3(1.5f));
-	table2->setPosition(glm::vec3(-65.0f, 0.0f, 0.0f));
-	table2->setEulerAngles(glm::vec3(0.0f, 40.0f, 0.0f));
-	table2->setCollision(true);
-	objs.push_back(table2);
+	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
+	//table2->setName("table");
+	//table2->loadTexture("images/woodTexture.jpg");
+	//table2->setScale(glm::vec3(1.5f));
+	//table2->setPosition(glm::vec3(-65.0f, 0.0f, 0.0f));
+	//table2->setEulerAngles(glm::vec3(0.0f, 40.0f, 0.0f));
+	//table2->setCollision(true);
+	//objs.push_back(table2);
 
-	Obj3D* target1 = objManager->readObj("objs/target.obj");
-	target1->setName("target");
-	target1->loadTexture("images/target_texture.jpg");
-	target1->setScale(glm::vec3(0.2f));
-	target1->setEulerAngles(glm::vec3(-90.0f, 0.0f, 0.0f));
-	target1->setPosition(glm::vec3(20.0f, 0.0f, 20.0f));
-	target1->setCollision(false);
-	objs.push_back(target1);
+	//Obj3D* target1 = objManager->readObj("objs/target.obj");
+	//target1->setName("target");
+	//target1->loadTexture("images/target_texture.jpg");
+	//target1->setScale(glm::vec3(0.2f));
+	//target1->setEulerAngles(glm::vec3(-90.0f, 0.0f, 0.0f));
+	//target1->setPosition(glm::vec3(00.0f, 0.0f, 20.0f));
+	//target1->setCollision(false);
+	//objs.push_back(target1);
 
-	Obj3D* target2 = target1->copy();
-	target2->setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
-	objs.push_back(target2);
+	//Obj3D* target2 = target1->copy();
+	//target2->setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
+	//objs.push_back(target2);
 
-	Obj3D* target3 = target1->copy();
-	target3->setPosition(glm::vec3(-20.0f, 0.0f, 20.0f));
-	objs.push_back(target3);
+	//Obj3D* target3 = target1->copy();
+	//target3->setPosition(glm::vec3(-20.0f, 0.0f, 20.0f));
+	//objs.push_back(target3);
 
 	Obj3D* cenaPaintball = objManager->readObj("objs/cenaPaintball.obj");
 	cenaPaintball->setName("CenaPaintball");
@@ -446,13 +450,18 @@ void System::Run() {
 	objs.push_back(cenaPaintball);
 
 	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
-	//libertyStatue->setColor(glm::vec3(0.25f, 0.64f, 0.80f));
-	libertyStatue->setColor(glm::vec3(1.0f));
+	libertyStatue->setColor(glm::vec3(0.25f, 0.64f, 0.80f));
 	libertyStatue->setName("LibertStatue");
 	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
-	libertyStatue->setScale(glm::vec3(35.0f));
+	libertyStatue->setScale(glm::vec3(35.0f, 35.0f, 35.0f));
 	libertyStatue->setCollision(true);
 	objs.push_back(libertyStatue);
+
+	/* coloca origem dos objetos no centro */
+	for (Obj3D* obj : objs) {
+		glm::vec3 objCenter = ((*obj->getGlobalPMin() + *obj->getGlobalPMax()) * obj->getScale()) / 2.0f;
+		obj->setOrigin(objCenter);
+	}
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
@@ -472,9 +481,10 @@ void System::Run() {
 	glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 
 	/* (WIP) Diffuse Lighting setup */
-	glm::vec3 lightPosition = glm::vec3(-10.0f, 60.0f, 0.0f);
+	glm::vec3 lightPosition = glm::vec3(-10.0f, 20.0f, 20.0f);
 	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-
+	glUniform3fv(diffuseColorLocation, 1, glm::value_ptr(lightColor));
+	glUniform3fv(diffusePositionLocation, 1, glm::value_ptr(lightPosition));
 
 	vector<bool> isCollisionHappening(objs.size(), false);
 
@@ -518,6 +528,10 @@ void System::Run() {
 			Obj3D* obj = objs[objectIndex];
 			if (!obj->isActive()) continue;
 
+			/* Rotaciona objeto */
+			if (obj->getName() != "CenaPaintball")
+				obj->setEulerAngles(glm::vec3(currentSeconds * 30));
+	
 			/* Desenha objeto */
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 			drawObj(obj, GL_TRIANGLES);

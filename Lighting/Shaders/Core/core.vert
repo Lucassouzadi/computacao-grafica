@@ -4,7 +4,8 @@ layout ( location = 0 ) in vec3 vPosition;
 layout ( location = 1 ) in vec3 vNormal;
 layout ( location = 2 ) in vec2 vTexture;
 
-out vec3 fragNormal;
+out vec3 fragPosition;
+out vec3 interpolatedFragNormal;
 out vec2 TexCoord;
 
 uniform mat4 translate;
@@ -14,7 +15,10 @@ uniform mat4 projection;
 
 void main()
 {
-	fragNormal = vNormal;
-	gl_Position = projection * view * model * vec4(vPosition, 1.0);
+	vec4 worldPosition = model * vec4(vPosition, 1.0);
+	
+	gl_Position = projection * view * worldPosition;
+	fragPosition = vec3(worldPosition);
+	interpolatedFragNormal = mat3(transpose(inverse(model))) * vNormal; // TODO perguntar pq que mat3(transpose(inverse(model))) funciona
 	TexCoord = vec2(vTexture.x, 1.0 - vTexture.y);
 }
