@@ -6,26 +6,46 @@ in vec2 TexCoord;
 out vec4 frag_color;
 
 uniform vec3 objColor;
-uniform vec3 aColor;
-uniform float aStrength;
-uniform vec3 dColor;
-uniform vec3 dPosition;
+
+uniform vec3 aColor;			// Ia
+uniform float aStrength;		// ka
+
+uniform vec3 lightColor;		// Ip
+uniform vec3 lightPosition;
+
+uniform vec3 eyePosition;
+
 uniform sampler2D texture1;
 uniform float alpha;
 uniform bool hasTexture;
 
 void main(){
 
-	vec3 ambient = aStrength * aColor;
+	vec3 ambient = aStrength * aColor;										// I = Ia * ka
 
-	vec3 fragNormal = normalize(interpolatedFragNormal);
-	vec3 lightDir = dPosition - fragPosition;  
-	float cossin = dot(fragNormal, normalize(lightDir));
-	vec3 diffuse = max(cossin, 0.0) * dColor;
+	vec3 fragNormal = normalize(interpolatedFragNormal);					// N
+	vec3 lightDir = lightPosition - fragPosition;							// VL
+	vec3 lightDirNorm = normalize(lightDir);								// L
+	float cossin = dot(fragNormal, lightDirNorm);							// cos 0 = N.L
+	float reflectionCoefficient = 0.5;										// kd
+	float attenuationFactor = 800.0 / pow(length(lightDir), 2);				// fatt = 1 / d²
+	vec3 diffuse = attenuationFactor * lightColor * max(cossin, 0.0) * reflectionCoefficient;	// Id = fatt * Ip * N.L * kd
 	
-	vec3 specular = vec3(0.0);
+	float specularStrength = 0.5;											// ks
+	float q = 50;															// q
+	vec3 viewDir = normalize(eyePosition - fragPosition);					// V = |P->V|
+	float Ad = dot(fragNormal, lightDirNorm);								// Ad = N.L
+	//vec3 reflectDir = fragNormal * (1.0 - Ad) - lightDirNorm;				// R = N * (1-Ad) - L
+	vec3 reflectDir = reflect(-lightDirNorm, fragNormal);					// R = reflect(L,N);
+	float As = max(dot(viewDir, reflectDir), 0.0);							// As = V.R
+	float s = pow(As, q);													// s = As^q
+	vec3 specular = specularStrength * s * lightColor;						// Is = ks * s * Ip
 
-	vec3 phong = (ambient + diffuse + specular);
+	vec3 phong = vec3(0.0);
+	phong += ambient;
+	phong += diffuse;
+	phong += specular;
+
 	if (hasTexture)
 		phong *= texture(texture1, TexCoord);
 	else

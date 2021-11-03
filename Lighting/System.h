@@ -36,8 +36,8 @@ private:
 public:
 	GLFWwindow* window;
 	Shader coreShader;
-	Obj3D *auxCircle, *auxBox, *auxSphere;
-	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation, diffusePositionLocation, diffuseColorLocation;
+	Obj3D* auxCircle, * auxBox, * auxSphere;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation, lightPositionLocation, lightColorLocation, eyePositionLocation;
 public:
 	System();
 	~System();
@@ -50,7 +50,7 @@ public:
 
 	void processInput(GLFWwindow* window, float elapsedSeconds);
 
-	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting, glm::vec3 *reflectionNormal);
+	bool testCollisionSphereVSCube(Obj3D* sphere, Obj3D* box, bool visilizeCollisionTesting, glm::vec3* reflectionNormal);
 
 	void Finish();
 

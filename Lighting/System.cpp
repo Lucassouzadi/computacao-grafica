@@ -10,7 +10,7 @@ glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 float objSpeed = 20.0f;
-float cameraSpeed = 38.0f;
+float cameraSpeed = 22.0f;
 
 //mouse configs
 bool firstMouse = true;
@@ -160,8 +160,9 @@ int System::SystemSetup()
 	objColorLocation = glGetUniformLocation(coreShader.program, "objColor");
 	ambientColorLocation = glGetUniformLocation(coreShader.program, "aColor");
 	ambientColorStrengthLocation = glGetUniformLocation(coreShader.program, "aStrength");
-	diffuseColorLocation = glGetUniformLocation(coreShader.program, "dColor");
-	diffusePositionLocation = glGetUniformLocation(coreShader.program, "dPosition");
+	lightColorLocation = glGetUniformLocation(coreShader.program, "lightColor");
+	lightPositionLocation = glGetUniformLocation(coreShader.program, "lightPosition");
+	eyePositionLocation = glGetUniformLocation(coreShader.program, "eyePosition");
 
 	return EXIT_SUCCESS;
 }
@@ -240,19 +241,22 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 
 	if (collisionTestCoord.x < unrotatedP0Coords.x) {			// left   
 		collisionTestCoord.x = unrotatedP0Coords.x;
-	} else if (collisionTestCoord.x > unrotatedP1Coords.x) {	// right
+	}
+	else if (collisionTestCoord.x > unrotatedP1Coords.x) {	// right
 		collisionTestCoord.x = unrotatedP1Coords.x;
 	}
 
 	if (collisionTestCoord.y < unrotatedP0Coords.y) {			// bottom 
 		collisionTestCoord.y = unrotatedP0Coords.y;
-	} else if (collisionTestCoord.y > unrotatedP1Coords.y) {	// top
+	}
+	else if (collisionTestCoord.y > unrotatedP1Coords.y) {	// top
 		collisionTestCoord.y = unrotatedP1Coords.y;
 	}
 
 	if (collisionTestCoord.z < unrotatedP0Coords.z) {			// back
 		collisionTestCoord.z = unrotatedP0Coords.z;
-	} else if (collisionTestCoord.z > unrotatedP1Coords.z) {	// front
+	}
+	else if (collisionTestCoord.z > unrotatedP1Coords.z) {	// front
 		collisionTestCoord.z = unrotatedP1Coords.z;
 	}
 
@@ -323,7 +327,8 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 			if (groupCollisionTestCoord.x < groupP0UnrotatedCoords.x) {			// left   
 				groupCollisionTestCoord.x = groupP0UnrotatedCoords.x;
 				reflectionNormal->x -= 1.0f;
-			} else if (groupCollisionTestCoord.x > groupP1UnrotatedCoords.x) {	// right
+			}
+			else if (groupCollisionTestCoord.x > groupP1UnrotatedCoords.x) {	// right
 				groupCollisionTestCoord.x = groupP1UnrotatedCoords.x;
 				reflectionNormal->x += 1.0f;
 			}
@@ -331,7 +336,8 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 			if (groupCollisionTestCoord.y < groupP0UnrotatedCoords.y) {			// bottom 
 				groupCollisionTestCoord.y = groupP0UnrotatedCoords.y;
 				reflectionNormal->y -= 1.0f;
-			} else if (groupCollisionTestCoord.y > groupP1UnrotatedCoords.y) {	// top
+			}
+			else if (groupCollisionTestCoord.y > groupP1UnrotatedCoords.y) {	// top
 				groupCollisionTestCoord.y = groupP1UnrotatedCoords.y;
 				reflectionNormal->y += 1.0f;
 			}
@@ -339,7 +345,8 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 			if (groupCollisionTestCoord.z < groupP0UnrotatedCoords.z) {			// back
 				groupCollisionTestCoord.z = groupP0UnrotatedCoords.z;
 				reflectionNormal->z -= 1.0f;
-			} else if (groupCollisionTestCoord.z > groupP1UnrotatedCoords.z) {	// front
+			}
+			else if (groupCollisionTestCoord.z > groupP1UnrotatedCoords.z) {	// front
 				groupCollisionTestCoord.z = groupP1UnrotatedCoords.z;
 				reflectionNormal->z += 1.0f;
 			}
@@ -480,12 +487,6 @@ void System::Run() {
 	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
 	glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 
-	/* (WIP) Diffuse Lighting setup */
-	glm::vec3 lightPosition = glm::vec3(-10.0f, 20.0f, 20.0f);
-	glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	glUniform3fv(diffuseColorLocation, 1, glm::value_ptr(lightColor));
-	glUniform3fv(diffusePositionLocation, 1, glm::value_ptr(lightPosition));
-
 	vector<bool> isCollisionHappening(objs.size(), false);
 
 	while (!glfwWindowShouldClose(window)) {
@@ -500,6 +501,17 @@ void System::Run() {
 		previousSeconds = currentSeconds;
 
 		processInput(window, elapsedSeconds);
+
+
+		/* Diffuse Lighting setup */
+		glm::vec3 lightPosition = glm::vec3(sin(currentSeconds) * 20, 45.0f, cos(currentSeconds) * 20);
+		//glm::vec3 lightPosition = glm::vec3(10.0f, 35.0f, 0.0f);
+		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		glUniform3fv(lightColorLocation, 1, glm::value_ptr(lightColor));
+		glUniform3fv(lightPositionLocation, 1, glm::value_ptr(lightPosition));
+
+		/* Specular Lighting setup */
+		glUniform3fv(eyePositionLocation, 1, glm::value_ptr(cameraPosition));
 
 		/* Projection e view */
 		glm::mat4 projection, view;
@@ -516,7 +528,7 @@ void System::Run() {
 		aimObj->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(aimObj->getTranslate()));
 		drawObj(aimObj, GL_TRIANGLES);
-		
+
 		/* Desloca projétil */
 		if (projectile->isActive()) {
 			glm::vec3 projectileDelta = glm::vec3(elapsedSeconds * objSpeed) * projectile->getDirection();
@@ -529,9 +541,9 @@ void System::Run() {
 			if (!obj->isActive()) continue;
 
 			/* Rotaciona objeto */
-			if (obj->getName() != "CenaPaintball")
-				obj->setEulerAngles(glm::vec3(currentSeconds * 30));
-	
+			//if (obj->getName() != "CenaPaintball")
+				//obj->setEulerAngles(glm::vec3(currentSeconds * 30));
+
 			/* Desenha objeto */
 			glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(obj->getTranslate()));
 			drawObj(obj, GL_TRIANGLES);
@@ -547,7 +559,8 @@ void System::Run() {
 					if (!obj->getCollision()) {
 						obj->setActive(false);
 						resetProjectile();
-					} else if (!isCollisionHappening[objectIndex]) {
+					}
+					else if (!isCollisionHappening[objectIndex]) {
 						cout << "collision with reflective object: " << obj->getName() << endl;
 						cout << "reflected!" << endl;
 						glm::vec3 newDirection = reflexao(projectile->getDirection(), *reflectionNormal);
