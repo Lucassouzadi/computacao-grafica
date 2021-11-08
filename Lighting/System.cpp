@@ -405,6 +405,7 @@ void System::Run() {
 	ObjManager* objManager = new ObjManager();
 
 	Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
+	objManager->loadMaterials(toonLink1);
 	toonLink1->setName("ToonLink1");
 	toonLink1->setScale(glm::vec3(1.5f));
 	toonLink1->setColor(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -416,6 +417,7 @@ void System::Run() {
 	//objs.push_back(toonLink2);
 
 	Obj3D* table = objManager->readObj("objs/mesa01.obj");
+	objManager->loadMaterials(table);
 	table->setName("table");
 	table->loadTexture("images/woodTexture.jpg");
 	table->setScale(glm::vec3(1.5f));
@@ -424,6 +426,7 @@ void System::Run() {
 	objs.push_back(table);
 
 	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
+	//objManager->loadMaterials(table2);
 	//table2->setName("table");
 	//table2->loadTexture("images/woodTexture.jpg");
 	//table2->setScale(glm::vec3(1.5f));
@@ -433,6 +436,7 @@ void System::Run() {
 	//objs.push_back(table2);
 
 	//Obj3D* target1 = objManager->readObj("objs/target.obj");
+	//objManager->loadMaterials(target1);
 	//target1->setName("target");
 	//target1->loadTexture("images/target_texture.jpg");
 	//target1->setScale(glm::vec3(0.2f));
@@ -450,6 +454,7 @@ void System::Run() {
 	//objs.push_back(target3);
 
 	Obj3D* cenaPaintball = objManager->readObj("objs/cenaPaintball.obj");
+	objManager->loadMaterials(cenaPaintball);
 	cenaPaintball->setName("CenaPaintball");
 	cenaPaintball->setScale(glm::vec3(5.0f));
 	cenaPaintball->setColor(glm::vec3(0.6f, 0.0f, 0.1f));
@@ -457,6 +462,7 @@ void System::Run() {
 	objs.push_back(cenaPaintball);
 
 	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
+	objManager->loadMaterials(libertyStatue);
 	libertyStatue->setColor(glm::vec3(0.25f, 0.64f, 0.80f));
 	libertyStatue->setName("LibertStatue");
 	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
@@ -473,6 +479,7 @@ void System::Run() {
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
 	auxSphere = objManager->readObj("objs/sphere.obj");
+	objManager->loadMaterials(auxSphere);
 	auxSphere->setScale(glm::vec3(0.7f));
 	Obj3D* aimObj = objManager->getCross(0.003f, 0.06f);
 

@@ -77,6 +77,16 @@ Obj3D* ObjManager::readObj(string filename) {
 			}   
 			group->setName(groupName);
 		}
+		else if (lineType == "usemtl") {
+			string materialId;
+			sline >> materialId;
+			group->setMaterial(new Material(materialId));
+		}
+		else if (lineType == "mtllib") {
+			string materialFileName;
+			sline >> materialFileName;
+			obj->setMaterialFileName(materialFileName);
+		}
 		else {   
 			cout << "[" << filename << "] tipo não reconhecido: " << lineType << endl;
 		}
@@ -91,6 +101,59 @@ Obj3D* ObjManager::readObj(string filename) {
 	obj->setMesh(mesh);
 	this->objToVAO(obj);
 	return obj;
+}
+
+void ObjManager::loadMaterials(Obj3D* obj) {
+	string fileName = obj->getMaterialFileName();
+	if (fileName == "") {
+		return;
+	}
+
+	ifstream arq("objs/" + fileName);
+	Material* currentMaterial = nullptr;
+	while (!arq.eof()) {
+		string line;
+		getline(arq, line);
+		stringstream sline;
+		sline << line;
+		string lineType;
+		sline >> lineType;
+		if (lineType == "" || lineType[0] == '#') continue;
+		if (lineType == "newmtl") {
+			string materialId;
+			sline >> materialId;
+			currentMaterial = obj->getMaterialById(materialId);
+		}
+		if (currentMaterial == nullptr) continue;
+		if (lineType == "ka") {
+			float x, y, z;
+			sline >> x >> y >> z;
+			currentMaterial->setKa(glm::vec3(x, y, z));
+		}
+		else if (lineType == "kd") {
+			float x, y, z;
+			sline >> x >> y >> z;
+			currentMaterial->setKd(glm::vec3(x, y, z));
+		}
+		else if (lineType == "ks") {
+			float x, y, z;
+			sline >> x >> y >> z;
+			currentMaterial->setKs(glm::vec3(x, y, z));
+		}
+		else if (lineType == "Ns") {
+			float ns;
+			sline >> ns;
+			currentMaterial->setNs(ns);
+		}
+		else if (lineType == "map_Kd") {
+			string mapKd;
+			sline >> mapKd;
+			currentMaterial->setMapKd(mapKd);
+		}
+		else {
+			cout << "[" << fileName << "] tipo não reconhecido: " << lineType << endl;
+		}
+	}
 }
 
 void addTriangle(Group* group, Mesh* mesh, Face* face, vector <GLfloat>* vPosition, vector <GLfloat>* vTexture, vector <GLfloat>* vNormal, int v1, int v2, int v3) {

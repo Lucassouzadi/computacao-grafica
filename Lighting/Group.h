@@ -5,11 +5,12 @@
 #include <GL/glew.h>
 
 #include "Face.h"
+#include "Material.h"
 
 class Group {
 	private:
 		string name;
-		string material;
+		Material* material;
 		vector<Face*> faces;
 		unsigned int VAO;
 		unsigned int numVertices;
@@ -20,7 +21,7 @@ class Group {
 	public:
 		Group();
 		void setName(string VAO);
-		void setMaterial(string material);
+		void setMaterial(Material* material);
 		void addFace(Face* face);
 		void setVAO(unsigned int VAO);
 		void setNumVertices(int numVertices);
@@ -28,7 +29,7 @@ class Group {
 		void setPMax(glm::vec3* p);
 		void setTexture(GLuint texture);
 		string getName();
-		string getMaterial();
+		Material* getMaterial();
 		vector<Face*> getFaces();
 		unsigned int getVAO();
 		unsigned int getNumVertices();

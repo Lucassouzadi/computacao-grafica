@@ -22,6 +22,8 @@ class Obj3D {
 		glm::vec3 color;
 		glm::mat4 translate;
 		void Obj3D::computeTranslate();
+
+		string materialFileName; //mtllib
 	public:
 		Obj3D();
 		Obj3D* copy();
@@ -52,4 +54,7 @@ class Obj3D {
 		GLuint getTexture();
 		void setActive(bool active);
 		bool isActive();
+		string getMaterialFileName();
+		void setMaterialFileName(string materialFileName);
+		Material* getMaterialById(string materialId);
 };

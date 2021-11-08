@@ -42,11 +42,11 @@ void Group::setName(string name) {
 	this->name = name;
 }
 
-void Group::setMaterial(string material) {
+void Group::setMaterial(Material* material) {
 	this->material = material;
 }
 
-string Group::getMaterial() {
+Material* Group::getMaterial() {
 	return material;
 }
 

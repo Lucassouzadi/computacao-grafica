@@ -129,6 +129,28 @@ void Obj3D::setColor(glm::vec3 color) {
 	this->color = color;
 }
 
+void Obj3D::setMaterialFileName(string materialFileName) {
+	this->materialFileName = materialFileName;
+}
+
+Material* Obj3D::getMaterialById(string materialId)
+{
+	Material* currentMaterial = nullptr;
+	for (int index = 0; index < mesh->getGroups().size(); index++) {
+		Group* group = mesh->getGroups()[index];
+		if (group->getMaterial() == nullptr) {
+			continue;
+		}
+
+		if (group->getMaterial()->getId() == materialId) {
+			currentMaterial = group->getMaterial();
+			break;
+		}
+	}
+
+	return currentMaterial;
+}
+
 bool Obj3D::getCollision()
 {
 	return collision;
@@ -192,4 +214,9 @@ glm::vec3 Obj3D::getColor()
 
 bool Obj3D::isActive() {
 	return active;
+}
+
+string Obj3D::getMaterialFileName()
+{
+	return materialFileName;
 }

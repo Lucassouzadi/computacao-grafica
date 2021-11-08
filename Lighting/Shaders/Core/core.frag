@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec3 interpolatedFragNormal ;
+in vec3 interpolatedFragNormal;
 in vec3 fragPosition;
 in vec2 TexCoord;
 out vec4 frag_color;
@@ -47,7 +47,7 @@ void main(){
 	phong += specular;
 
 	if (hasTexture)
-		phong *= texture(texture1, TexCoord);
+		phong *= vec3(texture(texture1, TexCoord));
 	else
 		phong *= objColor;
 

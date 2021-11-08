@@ -7,6 +7,7 @@
 class ObjManager {
 	public:
 		Obj3D* readObj(string fileName);
+		void loadMaterials(Obj3D* obj);
 		Obj3D* getHardcodedCube(GLfloat size);
 		Obj3D* get2DCircle(GLfloat radius, int vertices);
 		Obj3D* getCross(GLfloat width, GLfloat length);
