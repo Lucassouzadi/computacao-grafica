@@ -57,11 +57,3 @@ glm::vec3* Group::getPMin() {
 glm::vec3* Group::getPMax() {
 	return pMax;
 }
-
-unsigned int Group::getTexture() {
-	return texture;
-}
-
-void Group::setTexture(GLuint texture) {
-	this->texture = texture;
-}

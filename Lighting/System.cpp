@@ -191,11 +191,10 @@ float lenght(glm::vec3 vector) {
 void System::drawObj(Obj3D* obj, GLenum mode, GLenum frontFace = GL_CCW) {
 	glFrontFace(frontFace);
 	glUniform3fv(objColorLocation, 1, glm::value_ptr((obj->getColor())));
-	glUniform1i(hasTextureLocation, obj->getTexture() != 0);
-	glUniform1i(textureLocation, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, obj->getTexture());
 	for (Group* group : obj->getMesh()->getGroups()) {
+		glUniform1i(hasTextureLocation, group->getMaterial() != nullptr && group->getMaterial()->getTexture() != 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, group->getMaterial() != nullptr ? group->getMaterial()->getTexture() : 0);
 		glBindVertexArray(group->getVAO());
 		glDrawArrays(mode, 0, group->getNumVertices());
 	}
@@ -419,7 +418,6 @@ void System::Run() {
 	Obj3D* table = objManager->readObj("objs/mesa01.obj");
 	objManager->loadMaterials(table);
 	table->setName("table");
-	table->loadTexture("images/woodTexture.jpg");
 	table->setScale(glm::vec3(1.5f));
 	table->setPosition(glm::vec3(-35.0f, 0.0f, -10.0f));
 	table->setCollision(true);
@@ -428,7 +426,6 @@ void System::Run() {
 	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
 	//objManager->loadMaterials(table2);
 	//table2->setName("table");
-	//table2->loadTexture("images/woodTexture.jpg");
 	//table2->setScale(glm::vec3(1.5f));
 	//table2->setPosition(glm::vec3(-65.0f, 0.0f, 0.0f));
 	//table2->setEulerAngles(glm::vec3(0.0f, 40.0f, 0.0f));
@@ -438,7 +435,6 @@ void System::Run() {
 	//Obj3D* target1 = objManager->readObj("objs/target.obj");
 	//objManager->loadMaterials(target1);
 	//target1->setName("target");
-	//target1->loadTexture("images/target_texture.jpg");
 	//target1->setScale(glm::vec3(0.2f));
 	//target1->setEulerAngles(glm::vec3(-90.0f, 0.0f, 0.0f));
 	//target1->setPosition(glm::vec3(00.0f, 0.0f, 20.0f));
@@ -485,12 +481,15 @@ void System::Run() {
 
 	projectile = auxBox->copy();
 	projectile->setScale(glm::vec3(3.0f));
+	projectile->setColor(glm::vec3(0.5f, 0.5f, 0.5f));
 	resetProjectile();
 
+	glUniform1i(textureLocation, 0);
 
 	/* Ambient Lighting setup */
 	glm::vec3 ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	float ambientStrenght = 0.16f;
+	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
 	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
 	glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 

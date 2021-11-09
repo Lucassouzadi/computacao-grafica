@@ -103,6 +103,7 @@ Obj3D* ObjManager::readObj(string filename) {
 	return obj;
 }
 
+//TODO: ajustar reutilização de materials Ex: 7_-_Default da estatua
 void ObjManager::loadMaterials(Obj3D* obj) {
 	string fileName = obj->getMaterialFileName();
 	if (fileName == "") {
@@ -123,19 +124,19 @@ void ObjManager::loadMaterials(Obj3D* obj) {
 			string materialId;
 			sline >> materialId;
 			currentMaterial = obj->getMaterialById(materialId);
-		}
-		if (currentMaterial == nullptr) continue;
-		if (lineType == "ka") {
+		} else
+		if (currentMaterial == nullptr) continue; else
+		if (lineType == "Ka") {
 			float x, y, z;
 			sline >> x >> y >> z;
 			currentMaterial->setKa(glm::vec3(x, y, z));
 		}
-		else if (lineType == "kd") {
+		else if (lineType == "Kd") {
 			float x, y, z;
 			sline >> x >> y >> z;
 			currentMaterial->setKd(glm::vec3(x, y, z));
 		}
-		else if (lineType == "ks") {
+		else if (lineType == "Ks") {
 			float x, y, z;
 			sline >> x >> y >> z;
 			currentMaterial->setKs(glm::vec3(x, y, z));
@@ -149,6 +150,8 @@ void ObjManager::loadMaterials(Obj3D* obj) {
 			string mapKd;
 			sline >> mapKd;
 			currentMaterial->setMapKd(mapKd);
+			//TODO: ler texturas dps de ler o arquivo
+			currentMaterial->loadTexture(("images/" + mapKd).c_str());
 		}
 		else {
 			cout << "[" << fileName << "] tipo não reconhecido: " << lineType << endl;

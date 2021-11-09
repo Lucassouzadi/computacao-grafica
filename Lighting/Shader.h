@@ -10,14 +10,11 @@
 
 #include <map>
 
-#include "Texture.h"
-
 
 class Shader
 {
 public:
 	GLuint program;
-	std::map<std::string, Texture> textures;
 	GLint textureQtd;
 
 public:
@@ -129,9 +126,6 @@ public:
 	void Delete() {
 		glDeleteProgram(this->program);
 	}
-
-	void UseTexture(std::string textureName);
-	void LoadTexture(char* path, char* textureUniformName, std::string textureName);
 
 };
 

@@ -32,7 +32,7 @@ void main(){
 	vec3 diffuse = attenuationFactor * lightColor * max(cossin, 0.0) * reflectionCoefficient;	// Id = fatt * Ip * N.L * kd
 	
 	float specularStrength = 0.5;											// ks
-	float q = 50;															// q
+	float q = 50;															// q shininess
 	vec3 viewDir = normalize(eyePosition - fragPosition);					// V = |P->V|
 	float Ad = dot(fragNormal, lightDirNorm);								// Ad = N.L
 	//vec3 reflectDir = fragNormal * (1.0 - Ad) - lightDirNorm;				// R = N * (1-Ad) - L

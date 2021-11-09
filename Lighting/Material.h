@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-#include <glm\gtc\type_ptr.hpp>
+#include <glm\glm.hpp>
+#include <GL/glew.h>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ private:
 		ks; //specular
 	float ns; //shininess
 	string mapKd; //texture
-	unsigned int TID;
+	GLuint texture = 0;
 public:
 	Material(string id);
 	void setKa(glm::vec3 ka);
@@ -27,4 +28,7 @@ public:
 	glm::vec3 getKs();
 	float getNs();
 	string getMapKd();
+	void loadTexture(const char* filepath);
+	unsigned int Material::getTexture();
+	void Material::setTexture(GLuint texture);
 };
