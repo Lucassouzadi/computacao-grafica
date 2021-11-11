@@ -104,7 +104,6 @@ Obj3D* ObjManager::readObj(string filename) {
 	return obj;
 }
 
-//TODO: ajustar reutilização de materials Ex: 7_-_Default da estatua
 void ObjManager::loadMaterials(Obj3D* obj) {
 	string fileName = obj->getMaterialFileName();
 	if (fileName == "") {

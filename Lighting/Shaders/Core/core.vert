@@ -19,6 +19,6 @@ void main()
 	
 	gl_Position = projection * view * worldPosition;
 	fragPosition = vec3(worldPosition);
-	interpolatedFragNormal = mat3(transpose(inverse(model))) * vNormal; // TODO perguntar pq que mat3(transpose(inverse(model))) funciona
+	interpolatedFragNormal = mat3(transpose(inverse(model))) * vNormal;
 	TexCoord = vec2(vTexture.x, 1.0 - vTexture.y);
 }

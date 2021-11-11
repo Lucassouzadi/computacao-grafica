@@ -53,7 +53,6 @@ void ObjManager::objToVAO(Obj3D* obj) {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(1);
 
-		// TODO: ver com o Tonietto se tem como colocar índices para mais de um atributo
 		// GLuint EBO;
 		// glGenBuffers(1, &EBO);
 		// Index Buffer TODO: ver com o Tonietto se tem como usar índices pra mais de um atributo
