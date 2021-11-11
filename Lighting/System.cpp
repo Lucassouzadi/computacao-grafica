@@ -159,7 +159,10 @@ int System::SystemSetup()
 	hasTextureLocation = glGetUniformLocation(coreShader.program, "hasTexture");
 	objColorLocation = glGetUniformLocation(coreShader.program, "objColor");
 	ambientColorLocation = glGetUniformLocation(coreShader.program, "aColor");
-	ambientColorStrengthLocation = glGetUniformLocation(coreShader.program, "aStrength");
+	kaLocation = glGetUniformLocation(coreShader.program, "ka");
+	kdLocation = glGetUniformLocation(coreShader.program, "kd");
+	ksLocation = glGetUniformLocation(coreShader.program, "ks");
+	shininessLocation = glGetUniformLocation(coreShader.program, "shininess");
 	lightColorLocation = glGetUniformLocation(coreShader.program, "lightColor");
 	lightPositionLocation = glGetUniformLocation(coreShader.program, "lightPosition");
 	eyePositionLocation = glGetUniformLocation(coreShader.program, "eyePosition");
@@ -192,6 +195,19 @@ void System::drawObj(Obj3D* obj, GLenum mode, GLenum frontFace = GL_CCW) {
 	glFrontFace(frontFace);
 	glUniform3fv(objColorLocation, 1, glm::value_ptr((obj->getColor())));
 	for (Group* group : obj->getMesh()->getGroups()) {
+		if (group->getMaterial() == nullptr) {
+			glUniform3fv(kaLocation, 1, glm::value_ptr(glm::vec3(0.16f)));
+			glUniform3fv(kdLocation, 1, glm::value_ptr(glm::vec3(0.5f)));
+			glUniform3fv(ksLocation, 1, glm::value_ptr(glm::vec3(0.5f)));
+			glUniform1f(shininessLocation, 50.f);
+		}
+		else {
+			glUniform3fv(kaLocation, 1, glm::value_ptr(group->getMaterial()->getKa()));
+			glUniform3fv(kdLocation, 1, glm::value_ptr(group->getMaterial()->getKd()));
+			glUniform3fv(ksLocation, 1, glm::value_ptr(group->getMaterial()->getKs()));
+			glUniform1f(shininessLocation, group->getMaterial()->getNs());
+		}
+
 		glUniform1i(hasTextureLocation, group->getMaterial() != nullptr && group->getMaterial()->getTexture() != 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, group->getMaterial() != nullptr ? group->getMaterial()->getTexture() : 0);
@@ -459,7 +475,7 @@ void System::Run() {
 
 	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
 	objManager->loadMaterials(libertyStatue);
-	libertyStatue->setColor(glm::vec3(0.25f, 0.64f, 0.80f));
+	libertyStatue->setColor(glm::vec3(0.80f, 0.64f, 0.25f));
 	libertyStatue->setName("LibertStatue");
 	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 	libertyStatue->setScale(glm::vec3(35.0f, 35.0f, 35.0f));
@@ -487,11 +503,8 @@ void System::Run() {
 	glUniform1i(textureLocation, 0);
 
 	/* Ambient Lighting setup */
-	glm::vec3 ambientColor = glm::vec3(1.0f, 1.0f, 1.0f);
-	float ambientStrenght = 0.16f;
+	glm::vec3 ambientColor = glm::vec3(1.0f);
 	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
-	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
-	glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 
 	vector<bool> isCollisionHappening(objs.size(), false);
 
@@ -601,11 +614,9 @@ void System::Run() {
 		auxSphere->setPosition(lightPosition);
 		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxSphere->getTranslate()));
 		glUniform3fv(ambientColorLocation, 1, glm::value_ptr(glm::vec3(1.0f)));
-		glUniform1f(ambientColorStrengthLocation, 1.0f);
 		drawObj(auxSphere, GL_TRIANGLES);
 		drawObj(auxSphere, GL_LINE_STRIP);
 		glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
-		glUniform1f(ambientColorStrengthLocation, ambientStrenght);
 
 		glfwSwapBuffers(window);
 	}

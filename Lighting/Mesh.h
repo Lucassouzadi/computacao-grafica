@@ -19,4 +19,5 @@ class Mesh {
 		vector<glm::vec3*> getNorms();
 		vector<glm::vec2*> getTexts();
 		vector<Group*> getGroups();
+		Material* Mesh::getMaterialById(string materialId);
 };

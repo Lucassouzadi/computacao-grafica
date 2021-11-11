@@ -33,3 +33,21 @@ vector<Group*> Mesh::getGroups() {
 	return groups;
 }
 
+Material* Mesh::getMaterialById(string materialId)
+{
+	Material* currentMaterial = nullptr;
+
+	for (int index = 0; index < groups.size(); index++) {
+		Group* group = groups[index];
+		if (group->getMaterial() == nullptr) {
+			continue;
+		}
+
+		if (group->getMaterial()->getId() == materialId) {
+			currentMaterial = group->getMaterial();
+			break;
+		}
+	}
+
+	return currentMaterial;
+}

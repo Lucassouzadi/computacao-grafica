@@ -80,7 +80,8 @@ Obj3D* ObjManager::readObj(string filename) {
 		else if (lineType == "usemtl") {
 			string materialId;
 			sline >> materialId;
-			group->setMaterial(new Material(materialId));
+			Material* currentMaterial = mesh->getMaterialById(materialId);
+			group->setMaterial(currentMaterial != nullptr ? currentMaterial : new Material(materialId));
 		}
 		else if (lineType == "mtllib") {
 			string materialFileName;
@@ -123,7 +124,7 @@ void ObjManager::loadMaterials(Obj3D* obj) {
 		if (lineType == "newmtl") {
 			string materialId;
 			sline >> materialId;
-			currentMaterial = obj->getMaterialById(materialId);
+			currentMaterial = obj->getMesh()->getMaterialById(materialId);
 		} else
 		if (currentMaterial == nullptr) continue; else
 		if (lineType == "Ka") {

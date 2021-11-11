@@ -6,6 +6,10 @@ mtllib sphere.mtl
 
 o Sphere_Sphere
 
+
+g default
+usemtl m1
+
 v 0.0 0.5 -2.54558420181
 
 v 1.84198486805 -0.838264584541 -1.13842344284

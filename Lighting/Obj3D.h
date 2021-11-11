@@ -56,5 +56,4 @@ class Obj3D {
 		bool isActive();
 		string getMaterialFileName();
 		void setMaterialFileName(string materialFileName);
-		Material* getMaterialById(string materialId);
 };

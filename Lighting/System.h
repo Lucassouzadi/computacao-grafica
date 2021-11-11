@@ -37,7 +37,7 @@ public:
 	GLFWwindow* window;
 	Shader coreShader;
 	Obj3D* auxCircle, * auxBox, * auxSphere;
-	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, ambientColorStrengthLocation, lightPositionLocation, lightColorLocation, eyePositionLocation;
+	int alphaLocation, modelLocation, projectionLocation, viewLocation, textureLocation, hasTextureLocation, objColorLocation, ambientColorLocation, kaLocation, kdLocation, ksLocation, shininessLocation, lightPositionLocation, lightColorLocation, eyePositionLocation;
 public:
 	System();
 	~System();
@@ -55,7 +55,6 @@ public:
 	void Finish();
 
 	void drawObj(Obj3D* obj, GLenum mode, GLenum frontFace);
-	void bindTexture(GLuint texture);
 };
 
 #endif

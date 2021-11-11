@@ -109,24 +109,6 @@ void Obj3D::setMaterialFileName(string materialFileName) {
 	this->materialFileName = materialFileName;
 }
 
-Material* Obj3D::getMaterialById(string materialId)
-{
-	Material* currentMaterial = nullptr;
-	for (int index = 0; index < mesh->getGroups().size(); index++) {
-		Group* group = mesh->getGroups()[index];
-		if (group->getMaterial() == nullptr) {
-			continue;
-		}
-
-		if (group->getMaterial()->getId() == materialId) {
-			currentMaterial = group->getMaterial();
-			break;
-		}
-	}
-
-	return currentMaterial;
-}
-
 bool Obj3D::getCollision()
 {
 	return collision;
