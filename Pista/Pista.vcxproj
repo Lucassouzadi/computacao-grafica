@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A4069CE6-1E68-4E7E-B37E-120DBF77C204}</ProjectGuid>
-    <RootNamespace>Lighting</RootNamespace>
+    <ProjectGuid>{B0523CE8-42F1-4930-AE1E-A8AF6042B178}</ProjectGuid>
+    <RootNamespace>ScreenSaver</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Pista</ProjectName>
   </PropertyGroup>
@@ -125,26 +125,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Face.cpp" />
-    <ClCompile Include="Group.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Obj3D.cpp" />
-    <ClCompile Include="ObjManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="System.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
-    <ClInclude Include="Face.h" />
-    <ClInclude Include="Group.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Obj3D.h" />
-    <ClInclude Include="ObjManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="System.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Core\core.frag" />

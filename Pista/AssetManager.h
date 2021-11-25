@@ -4,6 +4,8 @@
 #include <GL\glew.h>
 #include <SOIL.h>
 
+#include <string>
+
 namespace AssetManager
 {
 
