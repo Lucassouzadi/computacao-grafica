@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Obj3DCamera", "Obj3DCamera\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lighting", "Lighting\Lighting.vcxproj", "{9C4A724C-AD30-489E-9C40-26A2709ED5A8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pista", "Pista\Pista.vcxproj", "{A4069CE6-1E68-4E7E-B37E-120DBF77C204}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{9C4A724C-AD30-489E-9C40-26A2709ED5A8}.Release|x64.Build.0 = Release|x64
 		{9C4A724C-AD30-489E-9C40-26A2709ED5A8}.Release|x86.ActiveCfg = Release|Win32
 		{9C4A724C-AD30-489E-9C40-26A2709ED5A8}.Release|x86.Build.0 = Release|Win32
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Debug|x64.ActiveCfg = Debug|x64
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Debug|x64.Build.0 = Debug|x64
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Debug|x86.ActiveCfg = Debug|Win32
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Debug|x86.Build.0 = Debug|Win32
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Release|x64.ActiveCfg = Release|x64
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Release|x64.Build.0 = Release|x64
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Release|x86.ActiveCfg = Release|Win32
+		{A4069CE6-1E68-4E7E-B37E-120DBF77C204}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
