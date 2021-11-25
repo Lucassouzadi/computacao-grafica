@@ -8,6 +8,7 @@ using namespace std;
 const GLint WIDTH = 1000, HEIGHT = 1000;
 
 vector<glm::vec3> controlPoints;
+vector<glm::vec3> curvePoints;
 
 System::System()
 {
@@ -123,25 +124,58 @@ void System::Run()
 
 		glPointSize(10.0f);
 
+		const float inc = 1/100.f;
+		const int N = controlPoints.size();
+
+		curvePoints.clear();
+
+		for (int i = 0; i < N; i++) {
+			for (float t = 0; t <= 1; t += inc) {
+				float x, y, z;
+
+				glm::vec3 p1 = controlPoints[i],
+					p2 = controlPoints[(i + 1) % N],
+					p3 = controlPoints[(i + 2) % N],
+					p4 = controlPoints[(i + 3) % N];
+
+				x = (((-1 * pow(t, 3) + 3 * pow(t, 2) - 3 * t + 1) * p1.x +
+					(3 * pow(t, 3) - 6 * pow(t, 2) + 0 * t + 4) * p2.x +
+					(-3 * pow(t, 3) + 3 * pow(t, 2) + 3 * t + 1) * p3.x +
+					(1 * pow(t, 3) + 0 * pow(t, 2) + 0 * t + 0) * p4.x) / 6);
+				y = (((-1 * pow(t, 3) + 3 * pow(t, 2) - 3 * t + 1) * p1.y +
+					(3 * pow(t, 3) - 6 * pow(t, 2) + 0 * t + 4) * p2.y +
+					(-3 * pow(t, 3) + 3 * pow(t, 2) + 3 * t + 1) * p3.y +
+					(1 * pow(t, 3) + 0 * pow(t, 2) + 0 * t + 0) * p4.y) / 6);
+				z = (((-1 * pow(t, 3) + 3 * pow(t, 2) - 3 * t + 1) * p1.z +
+					(3 * pow(t, 3) - 6 * pow(t, 2) + 0 * t + 4) * p2.z +
+					(-3 * pow(t, 3) + 3 * pow(t, 2) + 3 * t + 1) * p3.z +
+					(1 * pow(t, 3) + 0 * pow(t, 2) + 0 * t + 0) * p4.z) / 6);
+
+				curvePoints.push_back(glm::vec3(x, y, z));
+			}
+		}
+
+
 		// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 		glBindVertexArray(triangleVAO);
 
 		// Position attribute
 		glBindBuffer(GL_ARRAY_BUFFER, positionVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * controlPoints.size(), controlPoints.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * curvePoints.size(), curvePoints.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
 		// Color attribute
 		glBindBuffer(GL_ARRAY_BUFFER, colorVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * controlPoints.size(), controlPoints.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * curvePoints.size(), curvePoints.data(), GL_STATIC_DRAW);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(1);
 
 		glBindVertexArray(0); // Unbind VAO
 
 		glBindVertexArray(triangleVAO);
-		glDrawArrays(GL_POINTS, 0, controlPoints.size());
+		//glDrawArrays(GL_POINTS, 0, curvePoints.size());
+		glDrawArrays(GL_LINE_STRIP, 0, curvePoints.size());
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
