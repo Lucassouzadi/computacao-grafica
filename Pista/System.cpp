@@ -140,11 +140,9 @@ void System::Run()
 
 		glBindVertexArray(0); // Unbind VAO
 
-
 		glBindVertexArray(triangleVAO);
 		glDrawArrays(GL_POINTS, 0, controlPoints.size());
 		glBindVertexArray(0);
-
 
 		glfwSwapBuffers(window);
 	}
