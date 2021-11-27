@@ -482,6 +482,15 @@ void System::Run() {
 	libertyStatue->setCollision(true);
 	objs.push_back(libertyStatue);
 
+	Obj3D* pista = objManager->readObj("objs/pista.obj");
+	objManager->loadMaterials(pista);
+	pista->setColor(glm::vec3(0.80f, 0.64f, 0.25f));
+	pista->setName("pista");
+	pista->setPosition(glm::vec3(0.0f, 20.0f, 0.0f));
+	pista->setScale(glm::vec3(35.0f, 35.0f, 35.0f));
+	pista->setCollision(true);
+	objs.push_back(pista);
+
 	/* coloca origem dos objetos no centro */
 	for (Obj3D* obj : objs) {
 		glm::vec3 objCenter = ((*obj->getGlobalPMin() + *obj->getGlobalPMax()) * obj->getScale()) / 2.0f;
