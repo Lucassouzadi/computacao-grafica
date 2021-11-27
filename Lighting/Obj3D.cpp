@@ -3,6 +3,7 @@
 
 Obj3D::Obj3D() {
 	this->active = true;
+	this->collision = false;
 	this->globalPMin = new glm::vec3(numeric_limits<float>::max());
 	this->globalPMax = new glm::vec3(-numeric_limits<float>::max());
 	this->position = glm::vec3(0.0f);

@@ -1,4 +1,6 @@
 #include "System.h"
+#include <iostream>
+#include <fstream>
 
 constexpr auto PI = 3.14159265;
 
@@ -12,6 +14,7 @@ vector<glm::vec3> mainCurvePoints;
 vector<glm::vec3> innerCurvePoints;
 vector<glm::vec3> outerCurvePoints;
 vector<glm::vec3> curveColor;
+float currentZ = 0.0f;
 
 float dotXY(glm::vec3 v1, glm::vec3 v2) {
 	return v1.x * v2.x + v1.y * v2.y;
@@ -99,38 +102,42 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		cout << "mouse x: " << x << endl;
 		cout << "mouse y: " << y << endl;
 
-		controlPoints.push_back(glm::vec3(x, y, 0.f));
-		controlPointsColor.push_back(glm::vec3(x, y, 0.f));
+		controlPoints.push_back(glm::vec3(x, y, currentZ));
+		controlPointsColor.push_back(glm::vec3((currentZ+1)/2));
 	}
 }
 
 void writeCourseObj() {
 	cout << "writing course to obj" << endl;
 
-	cout << "g pista" << endl;
-	cout << "vt 0.0 0.0" << endl;
-	cout << "vn 0.0 1.0" << endl;
+	ofstream courseObjFile("../Lighting/objs/pista.obj");
+
+	courseObjFile << "g pista" << endl;
+	courseObjFile << "vt 0.0 0.0" << endl;
+	courseObjFile << "vn 0.0 1.0 0.0" << endl;
 
 	int courseSize = mainCurvePoints.size();
 
-	cout << endl << "# INNER CURVE VERTICES" << endl;
+	courseObjFile << endl << "# INNER CURVE VERTICES" << endl;
 	for (int i = 0; i < courseSize; i++) {
 		glm::vec3 ip = innerCurvePoints[i];
-		cout << "v " << ip.x << " " << ip.y << " " << ip.z << endl;
+		courseObjFile << "v " << ip.x << " " << ip.z << " " << -ip.y << endl;
 	}
-	cout << endl << "# OUTER CURVE VERTICES" << endl;
+	courseObjFile << endl << "# OUTER CURVE VERTICES" << endl;
 	for (int i = 0; i < courseSize; i++) {
 		glm::vec3 op = outerCurvePoints[i];
-		cout << "v " << op.x << " " << op.y << " " << op.z << endl;
+		courseObjFile << "v " << op.x << " " << op.z << " " << -op.y << endl;
 	}
-	cout << endl << "# FACES" << endl;
+	courseObjFile << endl << "# FACES" << endl;
 	for (int i = 1; i <= courseSize; i++) {
-		cout << "f "
+		courseObjFile << "f "
 			<< i << "/1/1 "
 			<< i % courseSize + 1 << "/1/1 "
 			<< i % courseSize + 1 + courseSize << "/1/1 "
 			<< i + courseSize << "/1/1 " << endl;
 	}
+
+	courseObjFile.close();
 
 	cout << "Finished" << endl;
 }
@@ -159,11 +166,26 @@ void System::Run()
 
 		glfwPollEvents();
 
+		static double previousSeconds = glfwGetTime();
+		double currentSeconds = glfwGetTime();
+		double elapsedSeconds = currentSeconds - previousSeconds;
+		previousSeconds = currentSeconds;
+
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
 		if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
 			writeCourseObj();
+		}
+		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			currentZ += elapsedSeconds;
+			currentZ = min(0.999f, currentZ);
+			cout << "z: " << currentZ << endl;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			currentZ -= elapsedSeconds;
+			currentZ = max(-1.0f, currentZ);
+			cout << "z: " << currentZ << endl;
 		}
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -207,11 +229,11 @@ void System::Run()
 
 				glm::vec3 point = glm::vec3(x, y, z);
 				mainCurvePoints.push_back(point);
-				curveColor.push_back(glm::vec3(1.0f));
+				curveColor.push_back(glm::vec3((z + 1) / 2));
 			}
 		}
 
-		const float width = 0.1f;
+		const float width = 0.06f;
 		if (mainCurvePoints.size() > 0) {
 			glm::vec3 previousPoint = mainCurvePoints[mainCurvePoints.size() - 1];
 			for (int i = 0; i < mainCurvePoints.size(); i++) {

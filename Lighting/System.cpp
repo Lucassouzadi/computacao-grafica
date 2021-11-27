@@ -185,6 +185,10 @@ void System::processInput(GLFWwindow* window, float elapsedSeconds)
 		cameraPosition -= cameraSpeed * elapsedSeconds * glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPosition += cameraSpeed * elapsedSeconds * glm::normalize(glm::cross(cameraFrontOnThefloor, cameraUp));
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		cameraPosition.y += cameraSpeed * elapsedSeconds;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+		cameraPosition.y -= cameraSpeed * elapsedSeconds;
 }
 
 float lenght(glm::vec3 vector) {
@@ -436,41 +440,13 @@ void System::Run() {
 	table->setName("table");
 	table->setScale(glm::vec3(1.5f));
 	table->setPosition(glm::vec3(-35.0f, 0.0f, -10.0f));
-	table->setCollision(true);
 	objs.push_back(table);
-
-	//Obj3D* table2 = objManager->readObj("objs/mesa01.obj");
-	//objManager->loadMaterials(table2);
-	//table2->setName("table");
-	//table2->setScale(glm::vec3(1.5f));
-	//table2->setPosition(glm::vec3(-65.0f, 0.0f, 0.0f));
-	//table2->setEulerAngles(glm::vec3(0.0f, 40.0f, 0.0f));
-	//table2->setCollision(true);
-	//objs.push_back(table2);
-
-	//Obj3D* target1 = objManager->readObj("objs/target.obj");
-	//objManager->loadMaterials(target1);
-	//target1->setName("target");
-	//target1->setScale(glm::vec3(0.2f));
-	//target1->setEulerAngles(glm::vec3(-90.0f, 0.0f, 0.0f));
-	//target1->setPosition(glm::vec3(00.0f, 0.0f, 20.0f));
-	//target1->setCollision(false);
-	//objs.push_back(target1);
-
-	//Obj3D* target2 = target1->copy();
-	//target2->setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
-	//objs.push_back(target2);
-
-	//Obj3D* target3 = target1->copy();
-	//target3->setPosition(glm::vec3(-20.0f, 0.0f, 20.0f));
-	//objs.push_back(target3);
 
 	Obj3D* cenaPaintball = objManager->readObj("objs/cenaPaintball.obj");
 	objManager->loadMaterials(cenaPaintball);
 	cenaPaintball->setName("CenaPaintball");
 	cenaPaintball->setScale(glm::vec3(5.0f));
 	cenaPaintball->setColor(glm::vec3(0.6f, 0.0f, 0.1f));
-	cenaPaintball->setCollision(true);
 	objs.push_back(cenaPaintball);
 
 	Obj3D* libertyStatue = objManager->readObj("objs/LibertStatue.obj");
@@ -479,23 +455,16 @@ void System::Run() {
 	libertyStatue->setName("LibertStatue");
 	libertyStatue->setPosition(glm::vec3(30.0f, 0.0f, 0.0f));
 	libertyStatue->setScale(glm::vec3(35.0f, 35.0f, 35.0f));
-	libertyStatue->setCollision(true);
 	objs.push_back(libertyStatue);
 
 	Obj3D* pista = objManager->readObj("objs/pista.obj");
 	objManager->loadMaterials(pista);
 	pista->setColor(glm::vec3(0.80f, 0.64f, 0.25f));
 	pista->setName("pista");
-	pista->setPosition(glm::vec3(0.0f, 20.0f, 0.0f));
-	pista->setScale(glm::vec3(35.0f, 35.0f, 35.0f));
-	pista->setCollision(true);
+	pista->setScale(glm::vec3(70.0f));
+	float courseLowestPoint = pista->getGlobalPMin()->y * pista->getScale().y;
+	pista->setPosition(glm::vec3(-70.0f, 1.0f-(courseLowestPoint), 0.0f));
 	objs.push_back(pista);
-
-	/* coloca origem dos objetos no centro */
-	for (Obj3D* obj : objs) {
-		glm::vec3 objCenter = ((*obj->getGlobalPMin() + *obj->getGlobalPMax()) * obj->getScale()) / 2.0f;
-		obj->setOrigin(objCenter);
-	}
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);
@@ -515,8 +484,6 @@ void System::Run() {
 	glm::vec3 ambientColor = glm::vec3(1.0f);
 	glUniform3fv(ambientColorLocation, 1, glm::value_ptr(ambientColor));
 
-	vector<bool> isCollisionHappening(objs.size(), false);
-
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
@@ -532,7 +499,7 @@ void System::Run() {
 
 
 		/* Diffuse Lighting setup */
-		glm::vec3 lightPosition = glm::vec3(sin(currentSeconds) * 20, 45.0f, cos(currentSeconds) * 20);
+		glm::vec3 lightPosition = glm::vec3(sin(currentSeconds) * 40, 100.0f, cos(currentSeconds) * 20);
 		//glm::vec3 lightPosition = glm::vec3(10.0f, 35.0f, 0.0f);
 		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 		glUniform3fv(lightColorLocation, 1, glm::value_ptr(lightColor));
@@ -563,7 +530,6 @@ void System::Run() {
 			projectile->setPosition(projectile->getPosition() + projectileDelta);
 		}
 
-		bool collidedWithAnyObjectThisFrame = false;
 		for (int objectIndex = 0; objectIndex < objs.size(); objectIndex++) {
 			Obj3D* obj = objs[objectIndex];
 			if (!obj->isActive()) continue;
@@ -577,29 +543,16 @@ void System::Run() {
 			drawObj(obj, GL_TRIANGLES);
 
 			/* Teste de colisão */
-			if (projectile->isActive()) {
+			if (projectile->isActive() && obj->getCollision()) {
 
 				glm::vec3* reflectionNormal = new glm::vec3;
 				bool collidedWithCurrentObject = testCollisionSphereVSCube(projectile, obj, false, reflectionNormal);
 
 				if (collidedWithCurrentObject) {
-					collidedWithAnyObjectThisFrame = true;
-					if (!obj->getCollision()) {
-						obj->setActive(false);
-						resetProjectile();
-					}
-					else if (!isCollisionHappening[objectIndex]) {
-						cout << "collision with reflective object: " << obj->getName() << endl;
-						cout << "reflected!" << endl;
-						glm::vec3 newDirection = reflexao(projectile->getDirection(), *reflectionNormal);
-						projectile->setDirection(newDirection);
-					}
-					else {
-						cout << "collision with this reflective object happened in previous frame, not reflecting" << endl;
-					}
+					obj->setActive(false);
+					resetProjectile();
 				}
 
-				isCollisionHappening[objectIndex] = collidedWithCurrentObject;
 			}
 		}
 
@@ -608,15 +561,7 @@ void System::Run() {
 		drawObj(projectile, GL_TRIANGLES, GL_CW);
 		drawObj(projectile, GL_LINE_STRIP);
 
-		/* Desenha bounding sphere do projétil */
-		//int numberOfCircles = 6;
-		//for (int i = 0; i < numberOfCircles; i++) {
-		//	auxCircle->setScale(glm::vec3(getBoundingSphereRadius(projectile) * 2.0f));
-		//	auxCircle->setPosition(projectile->getPosition());
-		//	auxCircle->setEulerAngles(glm::vec3(0.0f, (i / (float)numberOfCircles) * 180, 0.0f));
-		//	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(auxCircle->getTranslate()));
-		//	drawObj(auxCircle, GL_LINE_STRIP);
-		//}
+		/* Animação do carro */ // TODO
 
 		/* Desenha ponto de luz */
 		auxSphere->setColor(lightColor);
