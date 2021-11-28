@@ -32,8 +32,9 @@ void main(){
 	vec3 lightDir = lightPosition - fragPosition;							// VL
 	vec3 lightDirNorm = normalize(lightDir);								// L
 	float cossin = dot(fragNormal, lightDirNorm);							// cos 0 = N.L
-	vec3 reflectionCoefficient = kd;											// kd
-	float attenuationFactor = min(800.0 / pow(length(lightDir), 2), 1.f);				// fatt = 1 / d�
+	vec3 reflectionCoefficient = kd;										// kd
+	float attenuationFactor = 6000.0 / pow(length(lightDir), 2);			// fatt = 1 / d�
+	attenuationFactor = min(1.0f, attenuationFactor);						// fatt = 1 / d�
 	vec3 diffuse = attenuationFactor * lightColor * max(cossin, 0.0) * reflectionCoefficient;	// Id = fatt * Ip * N.L * kd
 
 	vec3 specularStrength = ks;												// ks
