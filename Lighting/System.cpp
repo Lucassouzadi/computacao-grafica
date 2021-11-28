@@ -417,19 +417,31 @@ bool System::testCollisionSphereVSCube(Obj3D* projectile, Obj3D* obj, bool visil
 	return coollidedWithAnyGroup;
 }
 
+vector<glm::vec3*> readCurve() {
+	vector<glm::vec3*> vertices;
+	ifstream arq("objs/pista.curve");
+	while (!arq.eof()) {
+		string line;
+		getline(arq, line);
+		stringstream sline;
+		sline << line;
+		float x, y, z;
+		sline >> x >> y >> z;
+		glm::vec3* vector = new glm::vec3(x, y, z);
+
+		vertices.push_back(vector);
+	}
+
+	return vertices;
+}
+
 void System::Run() {
 	/* Setup da cena */
 	vector<Obj3D*> objs = vector<Obj3D*>();
 
 	ObjManager* objManager = new ObjManager();
 
-	Obj3D* toonLink1 = objManager->readObj("objs/DolToonlinkR1_fixed.obj");
-	objManager->loadMaterials(toonLink1);
-	toonLink1->setName("ToonLink1");
-	toonLink1->setScale(glm::vec3(1.5f));
-	toonLink1->setColor(glm::vec3(0.0f, 1.0f, 0.0f));
-	toonLink1->setPosition(glm::vec3(-5.0f, 0.0f, 0.0f));
-	objs.push_back(toonLink1);
+	vector<glm::vec3*> curveVertices = readCurve();
 
 	//Obj3D* toonLink2 = toonLink1->copy();
 	//toonLink2->setName("ToonLink2");
@@ -465,6 +477,14 @@ void System::Run() {
 	float courseLowestPoint = pista->getGlobalPMin()->y * pista->getScale().y;
 	pista->setPosition(glm::vec3(-70.0f, 1.0f-(courseLowestPoint), 0.0f));
 	objs.push_back(pista);
+
+	Obj3D* carrito = objManager->readObj("objs/free_car_001.obj");
+	objManager->loadMaterials(carrito);
+	carrito->setCollision(true);
+	carrito->setName("free_car_001");
+	carrito->setScale(glm::vec3(.8f));
+	carrito->setPosition(pista->getPosition() + * curveVertices[0] * pista->getScale());
+	objs.push_back(carrito);
 
 	auxBox = objManager->getHardcodedCube(0.5f);
 	auxCircle = objManager->get2DCircle(0.5f, 32);

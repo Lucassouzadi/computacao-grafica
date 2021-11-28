@@ -142,6 +142,20 @@ void writeCourseObj() {
 	cout << "Finished" << endl;
 }
 
+void writeCourseCurve() {
+	cout << "writing course to curve" << endl;
+
+	ofstream courseCurveFile("../Lighting/objs/pista.curve");
+
+	for (int i = 0; i < mainCurvePoints.size(); i++) {
+		courseCurveFile << mainCurvePoints[i].x << " " << mainCurvePoints[i].z << " " << -mainCurvePoints[i].y << " " << endl;
+	}
+
+	courseCurveFile.close();
+
+	cout << "Finished" << endl;
+}
+
 void System::Run()
 {
 
@@ -176,6 +190,7 @@ void System::Run()
 		}
 		if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
 			writeCourseObj();
+			writeCourseCurve();
 		}
 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
 			currentZ += elapsedSeconds;
