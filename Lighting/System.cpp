@@ -478,12 +478,13 @@ void System::Run() {
 	pista->setPosition(glm::vec3(-70.0f, 1.0f-(courseLowestPoint), 0.0f));
 	objs.push_back(pista);
 
+	int carPoint = 0;
 	Obj3D* carrito = objManager->readObj("objs/free_car_001.obj");
 	objManager->loadMaterials(carrito);
 	carrito->setCollision(true);
 	carrito->setName("free_car_001");
 	carrito->setScale(glm::vec3(.8f));
-	carrito->setPosition(pista->getPosition() + * curveVertices[0] * pista->getScale());
+	carrito->setPosition(pista->getPosition() + * curveVertices[carPoint] * pista->getScale());
 	objs.push_back(carrito);
 
 	auxBox = objManager->getHardcodedCube(0.5f);
@@ -582,6 +583,25 @@ void System::Run() {
 		drawObj(projectile, GL_LINE_STRIP);
 
 		/* Animação do carro */ // TODO
+		glm::vec3 previousPoint = *curveVertices[carPoint % curveVertices.size()];
+		glm::vec3 currentPoint = *curveVertices[++carPoint % curveVertices.size()];
+
+		glm::vec3 directionXZ = glm::normalize(glm::vec3(previousPoint.x, 0.0f, previousPoint.z) - glm::vec3(currentPoint.x, 0.0f, currentPoint.z));
+		float angleXZ = glm::degrees(acos(dot(directionXZ, glm::vec3(1.0f, 0.0f, 0.0f))));
+		if (directionXZ.z < 0) {
+			angleXZ -= 90.0f;
+		} else {
+			angleXZ = 270.0f - angleXZ;
+		}
+
+		glm::vec3 directionYZ = glm::normalize(previousPoint - currentPoint);
+		float angleYZ = glm::degrees(acos(dot(directionYZ, glm::normalize(glm::vec3(directionYZ.x, 0.0f, directionYZ.z)))));
+		if (directionYZ.y < 0) {
+			angleYZ = -angleYZ;
+		}
+
+		carrito->setEulerAngles(glm::vec3(angleYZ, angleXZ, 0.0f));
+		carrito->setPosition(pista->getPosition() + currentPoint * pista->getScale());
 
 		/* Desenha ponto de luz */
 		auxSphere->setColor(lightColor);

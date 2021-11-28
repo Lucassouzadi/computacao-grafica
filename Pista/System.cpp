@@ -210,7 +210,7 @@ void System::Run()
 
 		glPointSize(10.0f);
 
-		const int segmentQuantity = 100;
+		const int segmentQuantity = 1000;
 		const int N = controlPoints.size();
 
 		mainCurvePoints.clear();

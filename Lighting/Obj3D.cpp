@@ -39,7 +39,7 @@ void Obj3D::computeTranslate()
 	yaw = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	pitch = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	roll = glm::rotate(glm::mat4(1.0f), glm::radians(this->eulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	rotationMatrix = yaw * pitch * roll * glm::translate(glm::mat4(1.0f), -this->origin);
+	rotationMatrix = roll * pitch * yaw * glm::translate(glm::mat4(1.0f), -this->origin);
 
 	scaleMatrix = glm::scale(glm::mat4(1.0f), this->scale);
 
