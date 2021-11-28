@@ -89,21 +89,58 @@ int System::SystemSetup()
 	return EXIT_SUCCESS;
 }
 
+bool mouseDown = false;
+
+int controlPointSelectedIndex = -1;
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		cout << "mouse right click" << endl;
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && mouseDown == true)
+	{
+		std::cout << "Mouse button released" << std::endl;
+		mouseDown = false;
+		
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
 		y = HEIGHT - y;
 
-		y =  y / HEIGHT * 2 - 1;
+		y = y / HEIGHT * 2 - 1;
+		x = x / WIDTH * 2 - 1;
+
+		if (controlPointSelectedIndex >= 0) {
+			controlPoints.erase(controlPoints.begin() + controlPointSelectedIndex);
+			controlPointsColor.erase(controlPointsColor.begin() + controlPointSelectedIndex);
+		}
+
+		controlPoints.push_back(glm::vec3(x, y, currentZ));
+		controlPointsColor.push_back(glm::vec3((currentZ + 1) / 2));
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && mouseDown == false)
+	{
+		std::cout << "Mouse button pressed" << std::endl;
+		mouseDown = true;
+
+		double x, y;
+		glfwGetCursorPos(window, &x, &y);
+		y = HEIGHT - y;
+
+		y = y / HEIGHT * 2 - 1;
 		x = x / WIDTH * 2 - 1;
 
 		cout << "mouse x: " << x << endl;
 		cout << "mouse y: " << y << endl;
 
-		controlPoints.push_back(glm::vec3(x, y, currentZ));
-		controlPointsColor.push_back(glm::vec3((currentZ+1)/2));
+		controlPointSelectedIndex = -1;
+
+		for (int i = 0; i < controlPoints.size(); i++) {
+			float difference = abs(controlPoints[i].x - x) + abs(controlPoints[i].y - y) + abs(controlPoints[i].z - currentZ);
+
+			if (difference < 0.1f) {
+				controlPointSelectedIndex = i;
+				break;
+			}
+		}
 	}
 }
 
