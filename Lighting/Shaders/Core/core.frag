@@ -33,7 +33,7 @@ void main(){
 	vec3 lightDirNorm = normalize(lightDir);								// L
 	float cossin = dot(fragNormal, lightDirNorm);							// cos 0 = N.L
 	vec3 reflectionCoefficient = kd;										// kd
-	float attenuationFactor = 6000.0 / pow(length(lightDir), 2);			// fatt = 1 / d�
+	float attenuationFactor = 600000.0 / pow(length(lightDir), 2);			// fatt = 1 / d�
 	attenuationFactor = min(1.0f, attenuationFactor);						// fatt = 1 / d�
 	vec3 diffuse = attenuationFactor * lightColor * max(cossin, 0.0) * reflectionCoefficient;	// Id = fatt * Ip * N.L * kd
 
@@ -57,6 +57,13 @@ void main(){
 		phong *= objColor;
 
 	frag_color = vec4(phong, 1.0);
+
+	vec4 cor_fog = vec4(0.2f, 0.3f, 0.3f, 1.0f);
+
+	float d = length(fragPosition - eyePosition);
+	float fatm = min(max(100.0 / d - 0.2f, 0.0f), 1.0f); 
+	frag_color = frag_color * fatm + (1.0f - fatm) * cor_fog;
+
 	//frag_color = vec4((fragNormal+1.0) / 2.0, 1.0);
 	//frag_color = vec4(fragPosition/10.0, 1.0);
 }

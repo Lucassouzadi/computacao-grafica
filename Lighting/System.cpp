@@ -540,10 +540,10 @@ void System::Run() {
 		glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
 
 		/* Desenha mira */
-		aimObj->setPosition(front);
-		aimObj->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
-		glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(aimObj->getTranslate()));
-		drawObj(aimObj, GL_TRIANGLES);
+		//aimObj->setPosition(front);
+		//aimObj->setEulerAngles(glm::vec3(0.0f, -cameraXZAngle, cameraXYAngle));
+		//glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(aimObj->getTranslate()));
+		//drawObj(aimObj, GL_TRIANGLES);
 
 		/* Desloca projétil */
 		if (projectile->isActive()) {
@@ -586,6 +586,7 @@ void System::Run() {
 		glm::vec3 previousPoint = *curveVertices[carPoint % curveVertices.size()];
 		glm::vec3 currentPoint = *curveVertices[++carPoint % curveVertices.size()];
 
+		/* Rotação do carro */ // TODO
 		glm::vec3 directionXZ = glm::normalize(glm::vec3(previousPoint.x, 0.0f, previousPoint.z) - glm::vec3(currentPoint.x, 0.0f, currentPoint.z));
 		float angleXZ = glm::degrees(acos(dot(directionXZ, glm::vec3(1.0f, 0.0f, 0.0f))));
 		if (directionXZ.z < 0) {
@@ -593,7 +594,6 @@ void System::Run() {
 		} else {
 			angleXZ = 270.0f - angleXZ;
 		}
-
 		glm::vec3 directionYZ = glm::normalize(previousPoint - currentPoint);
 		float angleYZ = glm::degrees(acos(dot(directionYZ, glm::normalize(glm::vec3(directionYZ.x, 0.0f, directionYZ.z)))));
 		if (directionYZ.y < 0) {

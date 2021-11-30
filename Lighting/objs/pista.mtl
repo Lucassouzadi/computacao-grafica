@@ -1,0 +1,6 @@
+newmtl asfalto
+Ns 10
+Ka 0 0 0
+Kd 0.431373 0.431373 0.431373
+Ks 0.6 0.6 0.6
+map_Kd asfalto.jpg

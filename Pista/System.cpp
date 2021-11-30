@@ -16,6 +16,9 @@ vector<glm::vec3> outerCurvePoints;
 vector<glm::vec3> curveColor;
 float currentZ = 0.0f;
 
+const int segmentQuantity = 100;
+const float textureRatio = 0.2f;
+
 float dotXY(glm::vec3 v1, glm::vec3 v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
@@ -147,12 +150,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 void writeCourseObj() {
+
 	cout << "writing course to obj" << endl;
 
 	ofstream courseObjFile("../Lighting/objs/pista.obj");
 
+	courseObjFile << "mtllib pista.mtl" << endl;
 	courseObjFile << "g pista" << endl;
-	courseObjFile << "vt 0.0 0.0" << endl;
+	courseObjFile << "usemtl asfalto" << endl << endl;
+
+	//courseObjFile << "vt 0.0 0.0" << endl;
+	//courseObjFile << "vt 1.0 0.0" << endl;
+	//courseObjFile << "vt 1.0 3.0" << endl;
+	//courseObjFile << "vt 0.0 3.0" << endl;
+
 	courseObjFile << "vn 0.0 1.0 0.0" << endl;
 
 	int courseSize = mainCurvePoints.size();
@@ -167,13 +178,24 @@ void writeCourseObj() {
 		glm::vec3 op = outerCurvePoints[i];
 		courseObjFile << "v " << op.x << " " << op.z << " " << -op.y << endl;
 	}
+	float currentTextureMappingY = 0.0;
+	for (int i = 0; i < courseSize; i++) {
+		courseObjFile << "vt " << "1.0" << " " << currentTextureMappingY << endl;
+		courseObjFile << "vt " << "0.0" << " " << currentTextureMappingY << endl;
+		glm::vec3 p0 = mainCurvePoints[i];
+		glm::vec3 p1 = mainCurvePoints[(i + 1) % courseSize];
+		glm::vec3 segment = p1 - p0;
+		float segmentLenght = sqrt(pow(segment.x, 2) + pow(segment.y, 2) + pow(segment.z, 2));
+		currentTextureMappingY += segmentLenght / textureRatio;
+	}
 	courseObjFile << endl << "# FACES" << endl;
 	for (int i = 1; i <= courseSize; i++) {
+		int currentText = (i - 1) * 2;
 		courseObjFile << "f "
-			<< i << "/1/1 "
-			<< i % courseSize + 1 << "/1/1 "
-			<< i % courseSize + 1 + courseSize << "/1/1 "
-			<< i + courseSize << "/1/1 " << endl;
+			<< i <<									"/" << currentText + 1 <<						"/1 "
+			<< i % courseSize + 1 <<				"/" << (currentText + 3) % (courseSize * 2) <<	"/1 "
+			<< i % courseSize + 1 + courseSize <<	"/" << (currentText + 3) % (courseSize * 2) + 1 <<	"/1 "
+			<< i + courseSize <<					"/" << currentText + 2 <<						"/1 " << endl;
 	}
 
 	courseObjFile.close();
@@ -249,7 +271,6 @@ void System::Run()
 
 		glPointSize(10.0f);
 
-		const int segmentQuantity = 1000;
 		const int N = controlPoints.size();
 
 		mainCurvePoints.clear();
