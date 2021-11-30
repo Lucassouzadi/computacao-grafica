@@ -108,12 +108,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		x = x / WIDTH * 2 - 1;
 
 		if (controlPointSelectedIndex >= 0) {
-			controlPoints.erase(controlPoints.begin() + controlPointSelectedIndex);
-			controlPointsColor.erase(controlPointsColor.begin() + controlPointSelectedIndex);
+			controlPoints[controlPointSelectedIndex] = glm::vec3(x, y, currentZ);
+			controlPointsColor[controlPointSelectedIndex] = glm::vec3((currentZ + 1) / 2);
 		}
-
-		controlPoints.push_back(glm::vec3(x, y, currentZ));
-		controlPointsColor.push_back(glm::vec3((currentZ + 1) / 2));
+		else {
+			controlPoints.push_back(glm::vec3(x, y, currentZ));
+			controlPointsColor.push_back(glm::vec3((currentZ + 1) / 2));
+		}
 	}
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && mouseDown == false)
@@ -134,7 +135,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		controlPointSelectedIndex = -1;
 
 		for (int i = 0; i < controlPoints.size(); i++) {
-			float difference = abs(controlPoints[i].x - x) + abs(controlPoints[i].y - y) + abs(controlPoints[i].z - currentZ);
+			//We opt to disconsider the Z coordinate
+			float difference = sqrt(pow(controlPoints[i].x - x, 2) + pow(controlPoints[i].y - y, 2));// +abs(controlPoints[i].z - currentZ);
 
 			if (difference < 0.1f) {
 				controlPointSelectedIndex = i;
