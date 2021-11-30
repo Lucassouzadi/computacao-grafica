@@ -23,7 +23,7 @@ float fov = 45.0f;
 float mouseSensitivity = 0.8f;
 
 float dot(glm::vec3 v1, glm::vec3 v2) {
-	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	return min(max(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z, -1.0f), 1.0f);
 }
 
 glm::vec3 reflexao(glm::vec3 direcao, glm::vec3 normal) {
@@ -425,6 +425,7 @@ vector<glm::vec3*> readCurve() {
 		getline(arq, line);
 		stringstream sline;
 		sline << line;
+		if (line == "" || line[0] == '#') continue;
 		float x, y, z;
 		sline >> x >> y >> z;
 		glm::vec3* vector = new glm::vec3(x, y, z);
@@ -588,14 +589,18 @@ void System::Run() {
 
 		/* Rotação do carro */ // TODO
 		glm::vec3 directionXZ = glm::normalize(glm::vec3(previousPoint.x, 0.0f, previousPoint.z) - glm::vec3(currentPoint.x, 0.0f, currentPoint.z));
+		
 		float angleXZ = glm::degrees(acos(dot(directionXZ, glm::vec3(1.0f, 0.0f, 0.0f))));
+
 		if (directionXZ.z < 0) {
 			angleXZ -= 90.0f;
 		} else {
 			angleXZ = 270.0f - angleXZ;
 		}
 		glm::vec3 directionYZ = glm::normalize(previousPoint - currentPoint);
+
 		float angleYZ = glm::degrees(acos(dot(directionYZ, glm::normalize(glm::vec3(directionYZ.x, 0.0f, directionYZ.z)))));
+		
 		if (directionYZ.y < 0) {
 			angleYZ = -angleYZ;
 		}
