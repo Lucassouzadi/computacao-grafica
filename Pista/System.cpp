@@ -92,6 +92,8 @@ int System::SystemSetup()
 	return EXIT_SUCCESS;
 }
 
+bool deletePressedOnMouseDown = false;
+
 bool mouseDown = false;
 
 int controlPointSelectedIndex = -1;
@@ -102,6 +104,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	{
 		std::cout << "Mouse button released" << std::endl;
 		mouseDown = false;
+
+		if (deletePressedOnMouseDown) {
+			deletePressedOnMouseDown = false;
+			if (controlPointSelectedIndex >= 0) {
+				controlPoints.erase(controlPoints.begin() + controlPointSelectedIndex);
+				controlPointsColor.erase(controlPointsColor.begin() + controlPointSelectedIndex);
+			}
+			return;
+		}
 		
 		double x, y;
 		glfwGetCursorPos(window, &x, &y);
@@ -262,6 +273,11 @@ void System::Run()
 			currentZ -= elapsedSeconds;
 			currentZ = max(-1.0f, currentZ);
 			cout << "z: " << currentZ << endl;
+		}
+		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS) {
+			if (mouseDown) {
+				deletePressedOnMouseDown = true;
+			}
 		}
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
